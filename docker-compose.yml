@@ -1,0 +1,14 @@
+
+
+services:
+  sender:
+      build: .
+      image: send-recv:1
+      container_name: sender
+      command: sleep infinity
+
+  receiver:
+      build: .
+      image: send-recv:1
+      container_name: receiver
+      command: sleep infinity

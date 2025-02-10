@@ -26,3 +26,7 @@ Só deve modificar o MAC destino do script, para que seja o de receiver.
 
 E em outro container se executa o script `recv.py` pra sniffar a interface de
 rede padrão, e monitorar o que chega.
+
+
+## Links úteis
+- Pisa arch: https://sdn.systemsapproach.org/switch.html

@@ -3,22 +3,22 @@ from scapy.layers.l2 import Ether
 
 from lineorder import LINEORDER_TYPE, LineOrder
 
-interface = 'veth0'
-destiny = '2a:37:ae:62:92:8'
+interface = 'veth1'
+destiny = '00:00:00:00:00:01'
 
 bind_layers(Ether, LineOrder, type=LINEORDER_TYPE)
 
 lines = []
 
 import csv
-with open('lineorder.csv', mode ='r')as file:
+with open('lineorder.sample.csv', mode ='r')as file:
   csvFile = csv.reader(file, delimiter=',')
   for line in csvFile:
     lines.append(line)
 
 ether_frame = Ether(dst=destiny)
 packets = []
-for l in lines[:10]:
+for l in lines:
   payload = LineOrder(
     lo_orderkey = int(l[0]),
     lo_linenumber = int(l[1]),

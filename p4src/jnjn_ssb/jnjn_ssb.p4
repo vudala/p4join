@@ -27,7 +27,7 @@ control SwitchIngress(
     action hit(PortId_t port) {
         ig_tm_md.ucast_egress_port = port;
 
-        hdr.lineorder.lo_shipmode = 80w0x414141414141414141;
+        hdr.lineorder.lo_shipmode = 80w0x41414141414141414100;
     }
 
     action miss(bit<3> drop) {

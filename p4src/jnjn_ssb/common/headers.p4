@@ -38,17 +38,18 @@ typedef bit<32> uint32;
 typedef bit<64> uint64;
 
 enum bit<8> TableType {
-    LINEORDER_TABLE = 8w0x0,
-    CUSTOMER_TABLE = 8w0x1,
-    SUPPLIER_TABLE = 8w0x2
+    LINEORDER_TABLE = 8w0x1,
+    CUSTOMER_TABLE = 8w0x2,
+    SUPPLIER_TABLE = 8w0x3
 }
 
 header join_control_h {
     bit<8> table_t;     // which table it refers to
     bool build;         // build/probe flag
+    bit<300> data;      // key to be hashed
     uint16 hash_key;    // store hash
     bool inserted;      // pkt inserted flag
-    bit<6> padding;     // TRASH      
+    bit<10> padding;     // TRASH      
 }
 
 
@@ -98,16 +99,16 @@ header supplier_h {
     bit<120> s_phone;       // str len 15
 }
 
-header_union table_u {
-    lineorder_h lineorder;
-    customer_h customer;
-    supplier_h supplier;
-}
+// header_union table_u {
+//     lineorder_h lineorder;
+//     customer_h customer;
+//     supplier_h supplier;
+// }
 
 struct header_t {
     ethernet_h ethernet;
     join_control_h join_control;
-    table_u op_table;
+//    table_u op_table;
 }
 
 struct metadata_t {}

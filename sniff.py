@@ -1,10 +1,10 @@
 from scapy.all import *
 from scapy.layers.l2 import Ether
-from lineorder import LineOrder, LINEORDER_TYPE
+from tables import Lineorder, TableType
 
 interface = 'veth0'
 
-bind_layers(Ether, LineOrder, type=LINEORDER_TYPE)
+bind_layers(Ether, Lineorder, type=TableType.LINEORDER)
 
 # Define a callback function to process each sniffed packet
 def process_packet(packet):

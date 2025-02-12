@@ -1,4 +1,7 @@
+
 #include <core.p4>
+#include <v1model.p4>
+
 #if __TARGET_TOFINO__ == 3
 #include <t3na.p4>
 #elif __TARGET_TOFINO__ == 2
@@ -7,10 +10,22 @@
 #include <tna.p4>
 #endif
 
-#include "common/headers.p4"
-#include "common/parser.p4"
+#include "../common/headers_dynpipe.p4"
+//#include "../common/parser_rdma.p4"
+#include "../common/parser.p4"
+#include "../common/hashing_keys.p4"
 
-/* ===================================================== Ingress ===================================================== */
+
+/*
+ * This is a custom header for the selection. We'll use
+ * etherType 0x1234 for it (see parser)
+ */
+const bit<16> P4SELECT_ETYPE = 0x1234;
+const bit<16> P4SELECT_JOIN  = 0x0001;   // '=' with padding
+const bit<16> P4SELECT_GBY   = 0x0002;   // '!='
+const bit<16> P4SELECT_JNGBY = 0x0003;   // '>' with padding
+
+action nop(){}
 
 // ---------------------------------------------------------------------------
 // Join Control
@@ -41,21 +56,6 @@ control Join(
     /************************ hash tables ************/
     /* bit<32> data and bit<16> register index */
 
-    /* Generic header considering a 6-field table with different types */
-    // header qtrp_h {
-    //     bit<32>     fld01_uint32;   // FIELD TO BE HASHED
-    //     bit<32>     fld02_uint32;
-    //     bit<32>     fld03_uint32;
-    //     bit<16>     fld04_uint16;   // Hash key for max 65k table size in tofino-2, STORE HASHED FIELD
-    //     bit<32>     fld05_uint32;   // INSERTED OR NOT
-    //     bit<32>     fld06_uint32;   // former fld06_date field, now used for group key (moved to field 10)
-    //     bit<16>     fld07_uint16;   /* Field 7 build/probe flag */ 1 BUILD, != 1 PROBE
-    //     bit<16>     fld08_uint16;   /* Field 8 group hash */
-    //     bit<16>     fld09_uint16;   /* Field 9 choose operation */
-    //     bit<16>     fld10_uint16;   /* Field 10 groupkey */    
-    //     bit<16>     fld11_uint16;   /* Query id */ 
-    // }
-
     #define CREATE_HASH_TABLE(N)                                                \
     Register<bit<32>, bit<HASH_SIZE>>(table_size)  hash_table_##N;              \
                                                                                 \
@@ -82,6 +82,18 @@ control Join(
     CREATE_HASH_TABLE(3)
     CREATE_HASH_TABLE(4)
     CREATE_HASH_TABLE(5)
+    CREATE_HASH_TABLE(6)
+    CREATE_HASH_TABLE(7)
+    CREATE_HASH_TABLE(8)
+    CREATE_HASH_TABLE(9)
+    CREATE_HASH_TABLE(10)
+    CREATE_HASH_TABLE(11)
+    CREATE_HASH_TABLE(12)
+    CREATE_HASH_TABLE(13)
+    CREATE_HASH_TABLE(14)
+    CREATE_HASH_TABLE(15)
+    CREATE_HASH_TABLE(16)
+    CREATE_HASH_TABLE(17)
 
     apply {
         if(qtrp.isValid() && (drop_ctl != 1)) {
@@ -92,14 +104,12 @@ control Join(
                 /*
                 * Using qtrp.fld07_uint16 to keep the table name. Value 1 means build, otherwise probe.
                 */
-                #define CREATE_JOIN_LOGIC(N)
-                /* BUILD */                                      \
+                #define CREATE_JOIN_LOGIC(N)                                      \
                 if(qtrp.fld07_uint16 == 1){                                       \
                     /* entry is not empty, go to next hash table */               \
                     if(qtrp.fld05_uint32 == 0){                                   \
                         qtrp.fld05_uint32 = build_##N.execute(qtrp.fld04_uint16); \
-                    }
-                /* PROBE */                                                       \
+                    }                                                             \
                 }else{                                                            \
                     /* key did not match, probe the next hash table */            \
                     if(qtrp.fld05_uint32 != qtrp.fld01_uint32){                   \
@@ -112,12 +122,23 @@ control Join(
                 CREATE_JOIN_LOGIC(3)
                 CREATE_JOIN_LOGIC(4)
                 CREATE_JOIN_LOGIC(5)
+                CREATE_JOIN_LOGIC(6)
+                CREATE_JOIN_LOGIC(7)
+                CREATE_JOIN_LOGIC(8)
+                CREATE_JOIN_LOGIC(9)
+                CREATE_JOIN_LOGIC(10)
+                CREATE_JOIN_LOGIC(11)
+                CREATE_JOIN_LOGIC(12)
+                CREATE_JOIN_LOGIC(13)
+                CREATE_JOIN_LOGIC(14)
+                CREATE_JOIN_LOGIC(15)
+                CREATE_JOIN_LOGIC(16)
+                CREATE_JOIN_LOGIC(17)
 
                 /* key not found in probe */
                 if(qtrp.fld05_uint32 != qtrp.fld01_uint32){
                     tb_drop.apply();
-                }
-                else if(qtrp.fld07_uint16 == 1){
+                }else if(qtrp.fld07_uint16 == 1){
                     tb_drop.apply();
                 }
                 /* Return flag to probe phase (fld07_uint16 - 1) for the case of sequence of joins.
@@ -132,27 +153,25 @@ control Join(
 
 } // Join control
 
+
 control SwitchIngress(
     /* User */
-    inout header_t      hdr,
-    inout metadata_t    meta,
+    inout header_t    hdr,
+    inout metadata_t    meta, 
     /* Intrinsic */
-    in ingress_intrinsic_metadata_t                     ig_intr_md,
+    in ingress_intrinsic_metadata_t                     ig_intr_md, 
     in ingress_intrinsic_metadata_from_parser_t         ig_prsr_md,
     inout ingress_intrinsic_metadata_for_deparser_t     ig_dprsr_md,
     inout ingress_intrinsic_metadata_for_tm_t           ig_tm_md)
 {
-
     /* Forward */
     action hit(PortId_t port) {
         ig_tm_md.ucast_egress_port = port;
     }
 
     action miss(bit<3> drop) {
-        ig_dprsr_md.drop_ctl = drop; // drop packet.
+        ig_dprsr_md.drop_ctl = drop; 
     }
-
-    Join(TABLE_SIZE) join1;
 
     table forward {
         key = {
@@ -168,19 +187,21 @@ control SwitchIngress(
         size = 1024;
     }
 
-    apply {
-        forward.apply();
+    Join(TABLE_SIZE) join1;
 
-        if (hdr.join_control.isValid())
-            join.apply(hdr.join_control, ig_dprsr_md.drop_ctl);
+
+    apply {    
+        forward.apply();
+        if(hdr.qtrp.isValid()) {
+
+            join1.apply(hdr.qtrp,ig_dprsr_md.drop_ctl);
+
+
+        }
     }
+
 }
 
-/* ===================================================== Egress ===================================================== */
-
-// ---------------------------------------------------------------------------
-// Egress Control
-// ---------------------------------------------------------------------------
 control SwitchEgress(
     /* User */
     inout header_t      hdr,
@@ -191,18 +212,35 @@ control SwitchEgress(
     inout egress_intrinsic_metadata_for_deparser_t      eg_dprsr_md,
     inout egress_intrinsic_metadata_for_output_port_t   eg_oport_md)
 {
-    apply {}
+    action miss(bit<3> drop) {
+        eg_dprsr_md.drop_ctl = drop; 
+    }
+    table drop_table {
+
+        actions = {
+            nop;
+            miss;
+        }
+
+        const default_action = nop();
+        size = 1024;
+    }
+
+    Join(TABLE_SIZE) join2;
+
+
+    apply {    
+        drop_table.apply();
+        if(hdr.qtrp.isValid()) {
+
+            join2.apply(hdr.qtrp,eg_dprsr_md.drop_ctl);
+
+
+        }
+    }
+
 }
 
-
-/* ===================================================== Final Pipeline ===================================================== */
-Pipeline(
-    SwitchIngressParser(),
-    SwitchIngress(),
-    SwitchIngressDeparser(),
-    SwitchEgressParser(),
-    SwitchEgress(),
-    SwitchEgressDeparser()
-) pipe;
-
+Pipeline(SwitchIngressParser(), SwitchIngress(), SwitchIngressDeparser(), SwitchEgressParser(), SwitchEgress(), SwitchEgressDeparser()) pipe;
 Switch(pipe) main;
+

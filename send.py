@@ -1,12 +1,12 @@
 from scapy.all import *
 from scapy.layers.l2 import Ether
 
-from lineorder import LINEORDER_TYPE, LineOrder
+from tables import Lineorder, TableType
 
 interface = 'veth1'
 destiny = '00:00:00:00:00:01'
 
-bind_layers(Ether, LineOrder, type=LINEORDER_TYPE)
+bind_layers(Ether, Lineorder, type=TableType.LINEORDER)
 
 lines = []
 
@@ -19,7 +19,7 @@ with open('lineorder.sample.csv', mode ='r')as file:
 ether_frame = Ether(dst=destiny)
 packets = []
 for l in lines:
-  payload = LineOrder(
+  payload = Lineorder(
     lo_orderkey = int(l[0]),
     lo_linenumber = int(l[1]),
     lo_custkey = int(l[2]),

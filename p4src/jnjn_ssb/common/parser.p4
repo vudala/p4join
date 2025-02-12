@@ -56,11 +56,30 @@ parser SwitchIngressParser(packet_in pkt,
 
     state parse_ethernet {
         pkt.extract(hdr.ethernet);
-        transition parse_lineorder;
+        transition parse_join_control;
+    }
+
+    state parse_join_control {
+        pkt.extract(hdr.join_control);
+        transition select(hdr.join_control.table_t) {
+            TableType.LINEORDER_TABLE: parse_lineorder;
+            TableType.CUSTOMER_TABLE: parse_customer;
+            TableType.SUPPLIER_TABLE: parse_supplier;
+        }
     }
 
     state parse_lineorder {
-        pkt.extract(hdr.lineorder);
+        pkt.extract(hdr.op_table.lineorder);
+        transition accept;
+    }
+
+    state parse_customer {
+        pkt.extract(hdr.op_table.customer);
+        transition accept;
+    }
+
+    state parse_supplier {
+        pkt.extract(hdr.op_table.supplier);
         transition accept;
     }
 }
@@ -101,11 +120,30 @@ parser SwitchEgressParser(packet_in pkt,
 
     state parse_ethernet {
         pkt.extract(hdr.ethernet);
-        transition parse_lineorder;
+        transition parse_join_control;
+    }
+
+    state parse_join_control {
+        pkt.extract(hdr.join_control);
+        transition select(hdr.join_control.table_t) {
+            TableType.LINEORDER_TABLE: parse_lineorder;
+            TableType.CUSTOMER_TABLE: parse_customer;
+            TableType.SUPPLIER_TABLE: parse_supplier;
+        }
     }
 
     state parse_lineorder {
-        pkt.extract(hdr.lineorder);
+        pkt.extract(hdr.op_table.lineorder);
+        transition accept;
+    }
+
+    state parse_customer {
+        pkt.extract(hdr.op_table.customer);
+        transition accept;
+    }
+
+    state parse_supplier {
+        pkt.extract(hdr.op_table.supplier);
         transition accept;
     }
 }

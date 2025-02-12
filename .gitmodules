@@ -1,4 +1,4 @@
 [submodule "ssb-dbgen"]
 	path = ssb-dbgen
 	url = https://github.com/eyalroz/ssb-dbgen/
-	ignore = dirty
+	ignore = all

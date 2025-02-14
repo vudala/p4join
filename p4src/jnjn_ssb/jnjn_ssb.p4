@@ -9,6 +9,7 @@
 
 #include "common/headers.p4"
 #include "common/parser.p4"
+#include "common/hashing_keys.p4"
 
 /* ===================================================== Ingress ===================================================== */
 
@@ -17,7 +18,7 @@
 // ---------------------------------------------------------------------------
 control Join(
     /* User */
-    inout qtrp_h      qtrp,
+    inout join_control_h      join_control,
     /* Intrinsic */
     inout bit<3>      drop_ctl)
     /* Number of distinct entries*/
@@ -39,22 +40,6 @@ control Join(
 
 
     /************************ hash tables ************/
-    /* bit<32> data and bit<16> register index */
-
-    /* Generic header considering a 6-field table with different types */
-    // header qtrp_h {
-    //     bit<32>     fld01_uint32;   // FIELD TO BE HASHED
-    //     bit<32>     fld02_uint32;
-    //     bit<32>     fld03_uint32;
-    //     bit<16>     fld04_uint16;   // Hash key for max 65k table size in tofino-2, STORE HASHED FIELD
-    //     bit<32>     fld05_uint32;   // INSERTED OR NOT
-    //     bit<32>     fld06_uint32;   // former fld06_date field, now used for group key (moved to field 10)
-    //     bit<16>     fld07_uint16;   /* Field 7 build/probe flag */ 1 BUILD, != 1 PROBE
-    //     bit<16>     fld08_uint16;   /* Field 8 group hash */
-    //     bit<16>     fld09_uint16;   /* Field 9 choose operation */
-    //     bit<16>     fld10_uint16;   /* Field 10 groupkey */    
-    //     bit<16>     fld11_uint16;   /* Query id */ 
-    // }
 
     #define CREATE_HASH_TABLE(N)                                                \
     Register<bit<32>, bit<HASH_SIZE>>(table_size)  hash_table_##N;              \
@@ -64,7 +49,7 @@ control Join(
             void apply(inout bit<32> register_data, out bit<32> inserted){      \
                 inserted = 0;                                                   \
                 if(register_data == 0){                                         \
-                    register_data = qtrp.fld01_uint32;                          \
+                    register_data = join_control.data;                          \
                     inserted = 1;                                               \
                 }                                                               \
             }                                                                   \
@@ -84,28 +69,25 @@ control Join(
     CREATE_HASH_TABLE(5)
 
     apply {
-        if(qtrp.isValid() && (drop_ctl != 1)) {
+        if(join_control.isValid() && (drop_ctl != 1)) {
             @atomic {
-                join_key.apply(qtrp, qtrp.fld04_uint16);                                                             
+                join_key.apply(join_control, join_control.hash_key);                                                             
 
-
-                /*
-                * Using qtrp.fld07_uint16 to keep the table name. Value 1 means build, otherwise probe.
-                */
-                #define CREATE_JOIN_LOGIC(N)
-                /* BUILD */                                      \
-                if(qtrp.fld07_uint16 == 1){                                       \
-                    /* entry is not empty, go to next hash table */               \
-                    if(qtrp.fld05_uint32 == 0){                                   \
-                        qtrp.fld05_uint32 = build_##N.execute(qtrp.fld04_uint16); \
-                    }
-                /* PROBE */                                                       \
-                }else{                                                            \
-                    /* key did not match, probe the next hash table */            \
-                    if(qtrp.fld05_uint32 != qtrp.fld01_uint32){                   \
-                        qtrp.fld05_uint32 = probe_##N.execute(qtrp.fld04_uint16); \
-                    }                                                             \
-                }  
+                
+                #define CREATE_JOIN_LOGIC(N)                                              \
+                /* BUILD */                                                               \
+                if(join_control.build == 1){                                              \
+                    /* entry is not empty, go to next hash table */                       \
+                    if(join_control.inserted == 0){                                       \
+                        join_control.inserted = build_##N.execute(join_control.hash_key); \
+                    }                                                                     \
+                /* PROBE */                                                               \
+                }else{                                                                    \
+                    /* key did not match, probe the next hash table */                    \
+                    if(join_control.inserted != join_control.data){                       \
+                        join_control.inserted = probe_##N.execute(join_control.hash_key); \
+                    }                                                                     \
+                }
 
                 CREATE_JOIN_LOGIC(1)
                 CREATE_JOIN_LOGIC(2)
@@ -114,15 +96,15 @@ control Join(
                 CREATE_JOIN_LOGIC(5)
 
                 /* key not found in probe */
-                if(qtrp.fld05_uint32 != qtrp.fld01_uint32){
+                if(join_control.inserted != join_control.data){
                     tb_drop.apply();
                 }
-                else if(qtrp.fld07_uint16 == 1){
+                else if(join_control.build == 1){
                     tb_drop.apply();
                 }
                 /* Return flag to probe phase (fld07_uint16 - 1) for the case of sequence of joins.
                 Otherwise, in case of a single join the packet is shipped to the server anyway*/
-                qtrp.fld07_uint16 = qtrp.fld07_uint16 - 1;
+                join_control.build = join_control.build - 1;
 
 
             } // @atomic hint
@@ -172,7 +154,7 @@ control SwitchIngress(
         forward.apply();
 
         if (hdr.join_control.isValid())
-            join.apply(hdr.join_control, ig_dprsr_md.drop_ctl);
+            join1.apply(hdr.join_control, ig_dprsr_md.drop_ctl);
     }
 }
 

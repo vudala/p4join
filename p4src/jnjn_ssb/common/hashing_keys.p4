@@ -1,7 +1,7 @@
 // Constants need udpate after tests to max size of tofino stage
 // TABLE_SIZE 64K and HASH_SIZE 16 bits
 // tests: TABLE_SIZE 16 and HASH_SIZE 4 bits
-#define TABLE_SIZE 94000
+#define TABLE_SIZE 65536
 #define HASH_SIZE 16
 #define HASH_ALG HashAlgorithm_t.CRC16
 
@@ -19,25 +19,12 @@
 // Calculating Hash
 // ---------------------------------------------------------------------------
 control join_hash(  
-    //in  header_t   hdr,
-    in qtrp_h      qtrp,
+    in join_control_h     join_control,
     out bit<HASH_SIZE>    sel_hash)
 {
     Hash<bit<HASH_SIZE>>(HASH_ALG) key_hash;
     
     apply {
-        sel_hash = key_hash.get((bit<HASH_SIZE>)qtrp.fld01_uint32);
-    }
-}
-
-control group_hash(  
-    //in  header_t   hdr,
-    in qtrp_h      qtrp,
-    out bit<HASH_SIZE>    sel_hash)
-{
-    Hash<bit<HASH_SIZE>>(HASH_ALG) group_key_hash;
-    
-    apply {
-        sel_hash = group_key_hash.get((bit<HASH_SIZE>)qtrp.fld06_uint32);
+        sel_hash = key_hash.get(join_control.data);
     }
 }

@@ -59,7 +59,7 @@ parser SwitchIngressParser(packet_in pkt,
         transition select(hdr.ethernet.ether_type) {
             ETHERTYPE_JOIN_CONTROL: parse_join_control;
             // no default = DROP
-        };
+        }
     }
 
      state parse_join_control {
@@ -131,7 +131,7 @@ parser SwitchEgressParser(packet_in pkt,
         transition select(hdr.ethernet.ether_type) {
             ETHERTYPE_JOIN_CONTROL: parse_join_control;
             // no default = DROP
-        };
+        }
     }
 
     state parse_join_control {

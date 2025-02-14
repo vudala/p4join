@@ -2,13 +2,24 @@ from enum import Enum
 
 # 3rd party
 from scapy.all import *
+from scapy.layers.l2 import Ether
 
-class TableType(Enum):
-    LINEORDER = 0x01
-    CUSTOMER = 0x02
-    SUPPLIER = 0x03
-    DATE = 0x04
+JOINCONTROL_TYPE = 0x8200
 
+class JoinControl(Packet):
+    name = 'JoinControl'
+    fields_desc = [
+        BitField('table_t', 0x00, 8),
+        BitField('build', 0xFFFFFFFF, 32),
+        BitField('hash_key', 0xFFFF, 16),
+        BitField('inserted', 0xFFFFFFFF, 32),
+        BitField('data', 0xFFFFFFFF, 32),
+    ]
+
+LINEORDER_TYPE = 0x01
+CUSTOMER_TYPE = 0x02
+SUPPLIER_TYPE = 0x03
+DATE_TYPE = 0x04
 
 # SF * 6_000_000
 class Lineorder(Packet):
@@ -63,7 +74,7 @@ class Supplier(Packet):
     ]
 
 
-# 7 * 365, 7 years
+# SF * 7 * 365 (7 years days)
 class Date(Packet):
     name = 'Date'
     fields_desc = [
@@ -86,23 +97,10 @@ class Date(Packet):
         StrFixedLenField('d_weekdayfl', None, length=1),
     ]
 
-# DATE Table Layout (7 years of days)
-# D_DATEKEY identifier, unique id -- e.g. 19980327
-# (what we use)
-# D_DATE fixed text, size 18: e.g. December 22, 1998
-# D_DAYOFWEEK fixed text, size 8, Sunday..Saturday
-# D_MONTH fixed text, size 9: January, ..., December
-# D_YEAR unique value 1992-1998
-# D_YEARMONTHNUM numeric (YYYYMM)
-# D_YEARMONTH fixed text, size 7: (e.g.: Mar1998
-# D_DAYNUMINWEEK numeric 1-7
-# D_DAYNUMINMONTH numeric 1-31
-# D_DAYNUMINYEAR numeric 1-366
-# D_MONTHNUMINYEAR numeric 1-12
-# D_WEEKNUMINYEAR numeric 1-53
-# D_SELLINGSEASON text, size 12 (e.g.: Christmas)
-# D_LASTDAYINWEEKFL 1 bit
-# D_LASTDAYINMONTHFL 1 bit
-# D_HOLIDAYFL 1 bit
-# D_WEEKDAYFL 1 bit
-# Primary Key: D_DATEKEY
+
+bind_layers(Ether, JoinControl, type=JOINCONTROL_TYPE)
+
+bind_layers(JoinControl, Lineorder, table_t=LINEORDER_TYPE)
+bind_layers(JoinControl, Customer, table_t=CUSTOMER_TYPE)
+bind_layers(JoinControl, Supplier, table_t=SUPPLIER_TYPE)
+bind_layers(JoinControl, Date, table_t=DATE_TYPE)

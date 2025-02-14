@@ -45,11 +45,10 @@ enum bit<8> TableType {
 
 header join_control_h {
     bit<8> table_t;     // which table it refers to
-    bool build;         // build/probe flag
-    bit<300> data;      // key to be hashed
+    bit<32> build;      // build/probe flag
     uint16 hash_key;    // store hash
-    bool inserted;      // pkt inserted flag
-    bit<10> padding;     // TRASH      
+    bit<32> inserted;   // pkt inserted flag
+    bit<32> data;       // key to be hashed
 }
 
 

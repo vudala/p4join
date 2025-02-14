@@ -22,4 +22,4 @@ mv part.tbl ../datasets/part.csv
 mv supplier.tbl ../datasets/supplier.csv
 mv date.tbl ../datasets/date.csv
 
-echo Done!
+echo Done! 

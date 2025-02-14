@@ -56,6 +56,23 @@ control Join(
     /************************ hash tables ************/
     /* bit<32> data and bit<16> register index */
 
+    /* bit<32> data and bit<16> register index */
+
+    /* Generic header considering a 6-field table with different types */
+    // header qtrp_h {
+    //     bit<32>     fld01_uint32;   // FIELD TO BE HASHED
+    //     bit<32>     fld02_uint32;
+    //     bit<32>     fld03_uint32;
+    //     bit<16>     fld04_uint16;   // Hash key for max 65k table size in tofino-2, STORE HASHED FIELD
+    //     bit<32>     fld05_uint32;   // INSERTED OR NOT
+    //     bit<32>     fld06_uint32;   // former fld06_date field, now used for group key (moved to field 10)
+    //     bit<16>     fld07_uint16;   /* Field 7 build/probe flag */ 1 BUILD, != 1 PROBE
+    //     bit<16>     fld08_uint16;   /* Field 8 group hash */
+    //     bit<16>     fld09_uint16;   /* Field 9 choose operation */
+    //     bit<16>     fld10_uint16;   /* Field 10 groupkey */    
+    //     bit<16>     fld11_uint16;   /* Query id */ 
+    // }
+
     #define CREATE_HASH_TABLE(N)                                                \
     Register<bit<32>, bit<HASH_SIZE>>(table_size)  hash_table_##N;              \
                                                                                 \

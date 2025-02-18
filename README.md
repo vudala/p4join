@@ -1,32 +1,20 @@
-# p4join
+# P4 JoinJoin
 
+## Dependencies
+- python3.10 with pip (to install and use scapy)
+- cmake (to compile ssb-dbgen)
 
-## Executando os containers para teste
-
-### Subindo os containers
-
+## Installation 
 ```bash
-docker compose build
-docker compose up -d
+git clone git@github.com:vudala/p4join.git --recursive
+cd p4join
+
+pip install -r requirements.txt
 ```
 
-### Acessando os container
-```bash
-# Acessando o sender
-docker exec -ti sender bash
+## Usage
+`gen_datasets.sh` generate SSB datasets in datasets directory
 
-# Acessando o receiver
-docker exec -ti receiver bash
-```
+`send.py` read a SSB csv and send it to iface
 
-Com acesso aos containers, é possível executar o scripts `send.py` para ler o
-arquivo `lineorder.csv`, e enviar o conteúdo de cada linha como um frame
-ethernet.
-Só deve modificar o MAC destino do script, para que seja o de receiver.
-
-E em outro container se executa o script `recv.py` pra sniffar a interface de
-rede padrão, e monitorar o que chega.
-
-
-## Links úteis
-- Pisa arch: https://sdn.systemsapproach.org/switch.html
+`sniff.py` sniff iface and display received packets

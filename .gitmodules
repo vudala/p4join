@@ -1,4 +1,4 @@
 [submodule "ssb-dbgen"]
 	path = ssb-dbgen
-	url = git@github.com:eyalroz/ssb-dbgen.git
+	url = https://github.com/eyalroz/ssb-dbgen/
 	branch = main

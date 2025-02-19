@@ -50,6 +50,7 @@ control Join(
                 inserted = 0;                                                   \
                 if(register_data == 0){                                         \
                     register_data = join_control.data;                          \
+                    /* any data so it doesnt trigger build  on next table*/     \
                     inserted = 1;                                               \
                 }                                                               \
             }                                                                   \
@@ -61,6 +62,14 @@ control Join(
                 result = register_data;                                         \
             }                                                                   \
     };                                                                          \
+                                                                                \
+    RegisterAction<bit<32>, bit<HASH_SIZE>, bit<32>>(hash_table_##N)            \
+        flush_##N = {                                                           \
+            void apply(inout bit<32> register_data, out bit<32> result){        \
+                register_data = 0;                                              \
+                result = 0;                                                     \
+            }                                                                   \
+    };
 
     CREATE_HASH_TABLE(1)
     CREATE_HASH_TABLE(2)
@@ -76,18 +85,21 @@ control Join(
                 
                 #define CREATE_JOIN_LOGIC(N)                                              \
                 /* BUILD */                                                               \
-                if(join_control.build == 1){                                              \
-                    /* entry is not empty, go to next hash table */                       \
-                    if(join_control.inserted == 0){                                       \
+                if (join_control.ctl_type == ControlType.BUILD) {                         \
+                    /* if build, and not inserted yet */                                  \
+                    if(join_control.inserted == 0) {                                      \
                         join_control.inserted = build_##N.execute(join_control.hash_key); \
                     }                                                                     \
+                }                                                                         \
                 /* PROBE */                                                               \
-                }else{                                                                    \
-                    /* key did not match, probe the next hash table */                    \
-                    if(join_control.inserted != join_control.data){                       \
-                        join_control.inserted = probe_##N.execute(join_control.hash_key); \
-                    }                                                                     \
-                }
+                else if (join_control.ctl_type == ControlType.PROBE) {                    \
+                    join_control.inserted = probe_##N.execute(join_control.hash_key);     \
+                }                                                                         \
+                /* FLUSH */                                                               \
+                else if (join_control.ctl_type == ControlType.FLUSH) {                    \
+                    /* execute the action on every entry in the register */               \
+                    flush_##N.sweep();                                                    \
+                }                                                                         
 
                 CREATE_JOIN_LOGIC(1)
                 CREATE_JOIN_LOGIC(2)
@@ -95,16 +107,25 @@ control Join(
                 CREATE_JOIN_LOGIC(4)
                 CREATE_JOIN_LOGIC(5)
 
-                /* key not found in probe */
-                if(join_control.inserted != join_control.data){
+                /* Packet used during build, wont be forwarded */
+                if(join_control.ctl_type == ControlType.BUILD){
                     tb_drop.apply();
                 }
-                else if(join_control.build == 1){
+                /* Packet probed the table */
+                else if(join_control.ctl_type == ControlType.PROBE){
+                    /* If probed index doesnt contain same data, drop*/
+                    if (join_control.inserted != join_control.data)
+                        tb_drop.apply();
+                }
+                /* If flushing the table, drop */
+                else if(join_control.ctl_type == ControlType.FLUSH){
                     tb_drop.apply();
                 }
+
+                /* If packet has reached this point, it means it has probed successfully*/
                 /* Return flag to probe phase (fld07_uint16 - 1) for the case of sequence of joins.
                 Otherwise, in case of a single join the packet is shipped to the server anyway*/
-                join_control.build = join_control.build - 1;
+                join_control.ctl_type = ControlType.PROBE;
 
 
             } // @atomic hint

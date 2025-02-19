@@ -1,5 +1,6 @@
 from scapy.all import *
 from scapy.layers.l2 import Ether
+import csv
 
 from tables import *
 
@@ -7,17 +8,17 @@ interface = 'veth0'
 destiny = '00:00:00:00:00:03'
 
 lines = []
+ether_frame = Ether(dst=destiny)
 
-import csv
-with open('./dataset_samples/lineorder.smallsample.csv', mode ='r')as file:
+########    PROBE    ##########
+
+with open('./dataset_samples/lineorder.small.sample.csv', mode ='r')as file:
   csvFile = csv.reader(file, delimiter='|')
   for line in csvFile:
     lines.append(line)
 
-ether_frame = Ether(dst=destiny)
-packets = []
 for l in lines:
-  lineo = Lineorder(
+  lineorder = Lineorder(
     lo_orderkey = int(l[0]),
     lo_linenumber = int(l[1]),
     lo_custkey = int(l[2]),
@@ -39,13 +40,13 @@ for l in lines:
 
   join_ctl = JoinControl(
     table_t = TableType.LINEORDER.value,
-    build = 0x01,
+    ctl_type = ControlType.PROBE.value,
     hash_key = 0x00,
     inserted = 0x00,
-    data = lineo.lo_orderkey
+    data = lineorder.lo_custkey
   )
 
-  packt = ether_frame / join_ctl / lineo
+  packt = ether_frame / join_ctl / lineorder
 
   packt.show()
 

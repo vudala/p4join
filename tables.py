@@ -4,22 +4,30 @@ from enum import Enum
 from scapy.all import *
 from scapy.layers.l2 import Ether
 
-JOINCONTROL_TYPE = 0x8200
+ETHER_JOINCTL_TYPE = 0x8200
 
 class JoinControl(Packet):
     name = 'JoinControl'
     fields_desc = [
         BitField('table_t', 0x00, 8),
-        BitField('build', 0xFFFFFFFF, 32),
+        BitField('ctl_type', 0xFFFFFFFF, 32),
         BitField('hash_key', 0xFFFF, 16),
         BitField('inserted', 0xFFFFFFFF, 32),
         BitField('data', 0xFFFFFFFF, 32),
     ]
 
-LINEORDER_TYPE = 0x01
-CUSTOMER_TYPE = 0x02
-SUPPLIER_TYPE = 0x03
-DATE_TYPE = 0x04
+class ControlType(Enum):
+    BUILD = 1
+    PROBE = 2
+    FLUSH = 3
+
+
+class TableType(Enum):
+    LINEORDER = 1
+    CUSTOMER = 2
+    SUPPLIER = 3
+    DATE = 4
+
 
 # SF * 6_000_000
 class Lineorder(Packet):
@@ -98,9 +106,9 @@ class Date(Packet):
     ]
 
 
-bind_layers(Ether, JoinControl, type=JOINCONTROL_TYPE)
+bind_layers(Ether, JoinControl, type=ETHER_JOINCTL_TYPE)
 
-bind_layers(JoinControl, Lineorder, table_t=LINEORDER_TYPE)
-bind_layers(JoinControl, Customer, table_t=CUSTOMER_TYPE)
-bind_layers(JoinControl, Supplier, table_t=SUPPLIER_TYPE)
-bind_layers(JoinControl, Date, table_t=DATE_TYPE)
+bind_layers(JoinControl, Lineorder, table_t=TableType.LINEORDER.value)
+bind_layers(JoinControl, Customer, table_t=TableType.CUSTOMER.value)
+bind_layers(JoinControl, Supplier, table_t=TableType.SUPPLIER.value)
+bind_layers(JoinControl, Date, table_t=TableType.DATE.value)

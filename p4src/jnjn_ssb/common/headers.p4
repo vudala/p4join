@@ -43,9 +43,16 @@ enum bit<8> TableType {
     SUPPLIER_TABLE = 8w0x3
 }
 
+enum bit<32> ControlType {
+    BUILD = 1,
+    PROBE = 2,
+    FLUSH = 3
+}
+
+
 header join_control_h {
     bit<8> table_t;     // which table it refers to
-    bit<32> build;      // build/probe flag
+    bit<32> ctl_type;   // build/probe/flush flag
     uint16 hash_key;    // store hash
     bit<32> inserted;   // pkt inserted flag
     bit<32> data;       // key to be hashed

@@ -93,7 +93,9 @@ control Join(
                 }                                                                         \
                 /* PROBE */                                                               \
                 else if (join_control.ctl_type == ControlType.PROBE) {                    \
-                    join_control.inserted = probe_##N.execute(join_control.hash_key);     \
+                    /* if not probed in previous table */                                 \
+                    if (join_control.inserted == 0)                                       \
+                        join_control.inserted = probe_##N.execute(join_control.hash_key); \
                 }                                                                         \
                 /* FLUSH */                                                               \
                 else if (join_control.ctl_type == ControlType.FLUSH) {                    \
@@ -117,16 +119,12 @@ control Join(
                     if (join_control.inserted != join_control.data)
                         tb_drop.apply();
                 }
-                /* If flushing the table, drop */
+                // /* If flushing the table, drop */
                 else if(join_control.ctl_type == ControlType.FLUSH){
                     tb_drop.apply();
                 }
 
-                /* If packet has reached this point, it means it has probed successfully*/
-                /* Return flag to probe phase (fld07_uint16 - 1) for the case of sequence of joins.
-                Otherwise, in case of a single join the packet is shipped to the server anyway*/
-                join_control.ctl_type = ControlType.PROBE;
-
+                /* If packet has reached this point, it means it has probed successfully */
 
             } // @atomic hint
         } // Packet validation 

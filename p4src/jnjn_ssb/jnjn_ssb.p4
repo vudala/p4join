@@ -63,13 +63,12 @@ control Join(
             }                                                                   \
     };                                                                          \
                                                                                 \
-    RegisterAction<bit<32>, bit<HASH_SIZE>, bit<32>>(hash_table_##N)            \
-        flush_##N = {                                                           \
-            void apply(inout bit<32> register_data, out bit<32> result){        \
-                register_data = 0;                                              \
-                result = 0;                                                     \
-            }                                                                   \
-    };
+    // RegisterAction<bit<32>, bit<HASH_SIZE>, bit<32>>(hash_table_##N)            \
+    //     flush_##N = {                                                           \
+    //         void apply(inout bit<32> register_data){                            \
+    //             register_data = 0;                                              \
+    //         }                                                                   \
+    // };
 
     CREATE_HASH_TABLE(1)
     CREATE_HASH_TABLE(2)
@@ -97,11 +96,11 @@ control Join(
                     if (join_control.inserted == 0)                                       \
                         join_control.inserted = probe_##N.execute(join_control.hash_key); \
                 }                                                                         \
-                /* FLUSH */                                                               \
-                else if (join_control.ctl_type == ControlType.FLUSH) {                    \
-                    /* execute the action on every entry in the register */               \
-                    flush_##N.sweep();                                                    \
-                }                                                                         
+                // /* FLUSH */                                                               \
+                // else if (join_control.ctl_type == ControlType.FLUSH) {                    \
+                //     /* execute the action on every entry in the register */               \
+                //     flush_##N.sweep();                                                    \
+                // }                                                                         
 
                 CREATE_JOIN_LOGIC(1)
                 CREATE_JOIN_LOGIC(2)
@@ -119,10 +118,10 @@ control Join(
                     if (join_control.inserted != join_control.data)
                         tb_drop.apply();
                 }
-                // /* If flushing the table, drop */
-                else if(join_control.ctl_type == ControlType.FLUSH){
-                    tb_drop.apply();
-                }
+                // // /* If flushing the table, drop */
+                // else if(join_control.ctl_type == ControlType.FLUSH){
+                //     tb_drop.apply();
+                // }
 
                 /* If packet has reached this point, it means it has probed successfully */
 

@@ -75,7 +75,7 @@ def send_chunk(cfg: Config, lines: list, index: int, chunk_size: int):
 
     pkts.append(pkt)
 
-  print(f"Thread {index} sending {chunk_size} packets on iface veth{index}")
+  print(f"Thread {index} sending {end_i - start_i + 1} packets on iface veth{index}")
 
   sendp(pkts, iface = f'veth{index}', verbose=False)
 

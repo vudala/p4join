@@ -20,6 +20,7 @@ class ControlType(Enum):
     BUILD = 1
     PROBE = 2
     FLUSH = 3
+    CLOSE = 99
 
 
 class TableType(Enum):

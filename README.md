@@ -92,7 +92,7 @@ cd ~/bf-sde-9.9.0
 
 Go back to terminal 1, and wait until you are able to interact with the bfshell.
 This process might take tens of seconds, so be patient.
-Once you are, execute the following script to update the routing tables of the
+Once you are, execute the following script to upda      te the routing tables of the
 switch:
 
 ```bash
@@ -109,7 +109,7 @@ After setting up the simulation, you can run the command `bfrt` on terminal 1,
 then you will be able to inspect the routing tables, the ports and other aspects
 of the managed switch.
 
-## Scripts
+## Testing
 
 ### `gen_datasets.sh`
 
@@ -122,10 +122,10 @@ building block for larger queries.
 Example:
 ```bash
 sudo python3 send.py --build -c dataset_samples/customers.sample.csv \
--k c_custkey --threads 4
+    -k c_custkey --threads 4
 
 sudo python3 send.py --probe -l dataset_samples/lineorder.sample.csv \
--k lo_custkey --threads 4
+    -k lo_custkey --threads 4
 ```
 
 This performs a join between customer.c_custkey and lineorder.lo_custkey.

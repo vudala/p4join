@@ -36,8 +36,8 @@ def build_customer(line: str):
 
 
 build_args = {
-    TableType.LINEORDER: build_lineorder,
-    TableType.CUSTOMER: build_customer,
+  TableType.LINEORDER: build_lineorder,
+  TableType.CUSTOMER: build_customer,
 }
 
 def build_pkt(data_t: TableType, line: str):

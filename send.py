@@ -12,6 +12,9 @@ from tables import *
 from pktbuilder import build_pkt
 
 class Config():
+  """
+  Wrapper class for program configurations
+  """
   file = None
   data_type = None
   ctl_type = None
@@ -44,16 +47,16 @@ def send_chunk(cfg: Config, lines: list, index: int, chunk_size: int):
   """
   Sends the csv lines as ethernets packets over virtual interfaces
 
-  - params:
-    - cfg: Config
-      - Program configs
-    - lines: list
-      - List of strings, each one being a line from csv
-    - index: int
-      - The thread index (starts on 0)
-    - chunk_size: int
-      - How many lines this thread must send
-
+  Params
+  ------
+  - cfg: Config
+    - Program configs
+  - lines: list
+    - List of strings, each one being a line from csv
+  - index: int
+    - The thread index (starts on 0)
+  - chunk_size: int
+    - How many lines this thread must send
   """
   start_i = index * chunk_size
   end_i = start_i + chunk_size
@@ -76,13 +79,43 @@ def send_chunk(cfg: Config, lines: list, index: int, chunk_size: int):
     pkts.append(pkt)
 
   print(f"Thread {index} sending {end_i - start_i + 1} packets on iface veth{index}")
-
   sendp(pkts, iface = f'veth{index}', verbose=False)
-
   print(f"Thread {index} done")
 
 
+def send_close(cfg: Config):
+  """
+  Sends a packet of type CLOSE to destiny
+
+  Params
+  ------
+  - cfg: Config
+    - Program configs
+  """
+  ether_frame = Ether(dst=cfg.destiny)
+
+  join_ctl = JoinControl(
+    table_t = 0x00,
+    ctl_type = ControlType.CLOSE.value,
+    hash_key = 0x00,
+    inserted = 0x00,
+    data = 0x00
+  )
+
+  sendp(ether_frame / join_ctl, iface = 'veth0', verbose=False)
+  
+
 def split_workload(cfg: Config, lines: list):
+  """
+  Splits the work of sending the CSV as packets, between multiple threads
+
+  Params
+  ------
+  - cfg: Config
+    - Program configs
+  - lines: list
+    - List containing the lines of the CSV
+  """
   size = len(lines)
   chunk_size = ceil(size / cfg.n_threads)
 
@@ -100,22 +133,46 @@ def split_workload(cfg: Config, lines: list):
     thrd.join()
 
 
+def parse_csv(file: str) -> list:
+  """
+  Reads a CSV and returns it as lines
+  
+  Params
+  ------
+  - file: str
+    - File path
+
+  Return
+  ------
+  - lines: list
+    - List where each element is a parsed line of the CSV
+  """
+  lines = []
+
+  try:
+    with open(file, mode = 'r') as file:
+      csvFile = csv.reader(file, delimiter='|')
+      for line in csvFile:
+        lines.append(line)
+  except Exception as e:
+    print(f'Error while trying to read file {file}', file=sys.stderr)
+    exit(1)
+
+  return lines
+
+
 def run(cfg: Config):
   # if cfg.ctl_type == ControlType.FLUSH:
   #   flush()
   #   return
 
-  lines = []
-  try:
-    with open(cfg.file, mode = 'r') as file:
-      csvFile = csv.reader(file, delimiter='|')
-      for line in csvFile:
-        lines.append(line)
-  except Exception as e:
-    print(f'Error while trying to read file {cfg.file}', file=sys.stderr)
-    exit(1)
+  lines = parse_csv(cfg.file)
 
   split_workload(cfg, lines)
+
+  print("Main thread sending CLOSE packet on veth0")
+  send_close(cfg)
+  print("Done")
 
 
 def get_args():
@@ -128,8 +185,8 @@ def get_args():
 
   t_group.add_argument("-l", nargs=1, type=str, help="Use table type lineorder")
   t_group.add_argument("-c", nargs=1, type=str, help="Use table type customer")
-  t_group.add_argument("-s", nargs=1, type=str, help="Use table type supplier")
-  t_group.add_argument("-d", nargs=1, type=str, help="Use table type date")
+  # t_group.add_argument("-s", nargs=1, type=str, help="Use table type supplier")
+  # t_group.add_argument("-d", nargs=1, type=str, help="Use table type date")
   # t_group.add_argument("-p", action="store_true", help="Use table type part")
 
   # Control type flag
@@ -175,12 +232,12 @@ if __name__ == "__main__":
   elif args.l:
     data_t = TableType.LINEORDER
     file = args.l[0]
-  elif args.d:
-    data_t = TableType.DATE
-    file = args.d[0]
-  elif args.s:
-    data_t = TableType.SUPPLIER
-    file = args.s[0]
+  # elif args.d:
+  #   data_t = TableType.DATE
+  #   file = args.d[0]
+  # elif args.s:
+  #   data_t = TableType.SUPPLIER
+  #   file = args.s[0]
   # elif args.p:
   #   data_t = TableType.PART
 
@@ -189,8 +246,8 @@ if __name__ == "__main__":
     ctl_t = ControlType.BUILD
   elif args.probe:
     ctl_t = ControlType.PROBE
-  elif args.flush:
-    ctl_t = ControlType.FLUSH
+  # elif args.flush:
+  #   ctl_t = ControlType.FLUSH
 
   cfg.data_type = data_t
   cfg.ctl_type = ctl_t

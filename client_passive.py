@@ -10,6 +10,7 @@ hash_table = {}
 
 def stop_condition(packet):
   if JoinControl in packet:
+    # Register the datetime to calculate processing time
     joinctl = packet[JoinControl]
     return joinctl.ctl_type == ControlType.CLOSE.value
 
@@ -21,7 +22,7 @@ def process_packet(packet):
     key = joinctl.data
 
     if joinctl.ctl_type == ControlType.BUILD.value:  
-      hash_table[key] = True
+      hash_table[key] = 'Set'
     elif joinctl.ctl_type == ControlType.PROBE.value:
       if key in hash_table:
         return True

@@ -121,11 +121,13 @@ building block for larger queries.
 
 Example:
 ```bash
-sudo python3 send.py --build -c dataset_samples/customers.sample.csv \
-    -k c_custkey --threads 4
+# Performs build on Ingress stage
+sudo python3 send.py --stage 1 -c dataset_samples/customers.sample.csv \
+    -bk c_custkey -pk null --threads 4
 
-sudo python3 send.py --probe -l dataset_samples/lineorder.sample.csv \
-    -k lo_custkey --threads 4
+# Probe during Ingress and Egress stage
+sudo python3 send.py --stage 3 -l dataset_samples/lineorder.sample.csv \
+    -bk c_custkey -pk lo_custkey --threads 4
 ```
 
 This performs a join between customer.c_custkey and lineorder.lo_custkey.

@@ -17,8 +17,9 @@ class Config():
   """
   file = None
   data_type = None
-  ctl_type = None
-  join_key = None
+  stage = None
+  build_key = None
+  probe_key = None
   destiny = None
   n_threads = None
 
@@ -67,11 +68,12 @@ def send_chunk(cfg: Config, lines: list, index: int, chunk_size: int):
     payload = build_pkt(cfg.data_type, l)
 
     join_ctl = JoinControl(
-      table_t = cfg.data_type.value,
-      ctl_type = cfg.ctl_type.value,
+      table_id = 0x00,
+      stage = cfg.stage,
+      build_key = payload.fields.get(cfg.build_key),
+      probe_key = payload.fields.get(cfg.probe_key),
       hash_key = 0x00,
-      inserted = 0x00,
-      data = payload.fields.get(cfg.join_key)
+      found = 0x00,
     )
 
     pkt = ether_frame / join_ctl / payload
@@ -95,11 +97,12 @@ def send_close(cfg: Config):
   ether_frame = Ether(dst=cfg.destiny)
 
   join_ctl = JoinControl(
-    table_t = 0x00,
-    ctl_type = ControlType.CLOSE.value,
+    table_id = 0x00,
+    stage = 0x00,
+    build_key = 0x00,
+    probe_key = 0x00,
     hash_key = 0x00,
-    inserted = 0x00,
-    data = 0x00
+    found = 0x00,
   )
 
   sendp(ether_frame / join_ctl, iface = 'veth0', verbose=False)
@@ -189,13 +192,10 @@ def get_args():
   # t_group.add_argument("-d", nargs=1, type=str, help="Use table type date")
   # t_group.add_argument("-p", action="store_true", help="Use table type part")
 
-  # Control type flag
-  ctl_group = parser.add_mutually_exclusive_group(required=True)
-
-  ctl_group.add_argument("--build", action="store_true",
-                         help="Send table as build")
-  ctl_group.add_argument("--probe", action="store_true",
-                         help="Send table as probe")
+  parser.add_argument("--stage", type=int,
+                         help="Which stage to send")
+  # ctl_group.add_argument("--probe", action="store_true",
+  #                        help="Send table as probe") 
   # ctl_group.add_argument("--flush", action="store_true",
   #                        help="Flush the hash tables")
 
@@ -207,7 +207,10 @@ def get_args():
 
   # Key field
   parser.add_argument(
-    "-k", "--key", type=str, required=True, help="Which field to use as key"
+    "-bk", "--build-key", type=str, required=True, help="Key to be used on build"
+  )
+  parser.add_argument(
+    "-pk", "--probe-key", type=str, required=True, help="Key to be used on probe"
   )
 
   # Destiny field
@@ -241,18 +244,11 @@ if __name__ == "__main__":
   # elif args.p:
   #   data_t = TableType.PART
 
-  ctl_t = 0
-  if args.build:
-    ctl_t = ControlType.BUILD
-  elif args.probe:
-    ctl_t = ControlType.PROBE
-  # elif args.flush:
-  #   ctl_t = ControlType.FLUSH
-
   cfg.data_type = data_t
-  cfg.ctl_type = ctl_t
+  cfg.stage = args.stage
   cfg.file = file
-  cfg.join_key = args.key
+  cfg.build_key = args.build_key
+  cfg.probe_key = args.probe_key
   cfg.destiny = args.dst
   cfg.n_threads = args.threads
 

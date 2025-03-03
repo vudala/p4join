@@ -22,9 +22,15 @@ control join_hash(
     in join_control_h     join_control,
     out bit<HASH_SIZE>    sel_hash)
 {
-    Hash<bit<HASH_SIZE>>(HASH_ALG) key_hash;
+    Hash<bit<HASH_SIZE>>(HASH_ALG) build_hash;
+    Hash<bit<HASH_SIZE>>(HASH_ALG) probe_hash;
     
     apply {
-        sel_hash = key_hash.get(join_control.data);
+        if (join_control.stage == 1) {
+            sel_hash = build_hash.get(join_control.build_key);
+        }
+        else {
+            sel_hash = probe_hash.get(join_control.probe_key);
+        }
     }
 }

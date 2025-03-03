@@ -6,14 +6,16 @@ from scapy.layers.l2 import Ether
 
 ETHER_JOINCTL_TYPE = 0x8200
 
+
 class JoinControl(Packet):
     name = 'JoinControl'
     fields_desc = [
-        BitField('table_t', 0x00, 8),
-        BitField('ctl_type', 0xFFFFFFFF, 32),
+        BitField('table_id', 0x00, 8),
+        BitField('stage', 0xFFFFFFFF, 8),
+        BitField('build_key', 0xFFFFFFFF, 32),
+        BitField('probe_key', 0xFFFFFFFF, 32),
         BitField('hash_key', 0xFFFF, 16),
-        BitField('inserted', 0xFFFFFFFF, 32),
-        BitField('data', 0xFFFFFFFF, 32),
+        BitField('found', 0xFFFFFFFF, 32),
     ]
 
 class ControlType(Enum):

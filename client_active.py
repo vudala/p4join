@@ -8,6 +8,7 @@ bind_layers(Ether, JoinControl, type=ETHER_JOINCTL_TYPE)
 
 
 def stop_condition(packet):
+  return False
   if JoinControl in packet:
     joinctl = packet[JoinControl]
     return joinctl.ctl_type == ControlType.CLOSE.value
@@ -22,9 +23,13 @@ def stop_condition(packet):
 #     return True
 
 
+def prnt(packet):
+  packet.show()
+
 print("Sniffing Ethernet frames...")
 
 result = sniff(iface=interface,
+                prn=prnt,
                 stop_filter=stop_condition)
 
 print("Done")

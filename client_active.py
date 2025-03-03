@@ -8,10 +8,9 @@ bind_layers(Ether, JoinControl, type=ETHER_JOINCTL_TYPE)
 
 
 def stop_condition(packet):
-  return False
   if JoinControl in packet:
     joinctl = packet[JoinControl]
-    return joinctl.ctl_type == ControlType.CLOSE.value
+    return joinctl.stage == 0x00
   
 
 # def process_packet(packet):

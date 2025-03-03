@@ -81,7 +81,7 @@ control Join(
                 found = 0;                                                      \
                 if(register_data == 0){                                         \
                     register_data = join_control.build_key;                     \
-                    /* any data so it doesnt trigger build on next table*/      \
+                    /* any data so it doesnt trigger build on next table */     \
                     found = 1;                                                  \
                 }                                                               \
             }                                                                   \
@@ -93,19 +93,21 @@ control Join(
                 result = register_data;                                         \
             }                                                                   \
     };                                                                          \
-    //                                                                             \
-    // RegisterAction<bit<32>, bit<HASH_SIZE>, bit<32>>(hash_table_##N)            \
-    //     flush_##N = {                                                           \
-    //         void apply(inout bit<32> register_data){                            \
-    //             register_data = 0;                                              \
-    //         }                                                                   \
-    // };                                                                          \
 
     CREATE_HASH_TABLE(1)
     CREATE_HASH_TABLE(2)
     CREATE_HASH_TABLE(3)
     CREATE_HASH_TABLE(4)
-    CREATE_HASH_TABLE(5)
+    CREATE_HASH_TABLE(6)
+    CREATE_HASH_TABLE(7)
+    CREATE_HASH_TABLE(8)
+    CREATE_HASH_TABLE(9)
+    CREATE_HASH_TABLE(10)
+    CREATE_HASH_TABLE(11)
+    CREATE_HASH_TABLE(12)
+    CREATE_HASH_TABLE(13)
+    CREATE_HASH_TABLE(14)
+    CREATE_HASH_TABLE(15)
 
     apply {
         if(join_control.isValid() && (drop_ctl != 1)) {
@@ -126,17 +128,22 @@ control Join(
                     if (join_control.found != join_control.probe_key)                     \
                         join_control.found = probe_##N.execute(join_control.hash_key);    \
                 }                                                                         \
-                // /* FLUSH */                                                               \
-                // else if (join_control.ctl_type == ControlType.FLUSH) {                    \
-                //     /* execute the action on every entry in the register */               \
-                //     flush_##N.execute((bit<16>) join_control.data);                       \
-                // }                                                                         \
 
                 CREATE_JOIN_LOGIC(1)
                 CREATE_JOIN_LOGIC(2)
                 CREATE_JOIN_LOGIC(3)
                 CREATE_JOIN_LOGIC(4)
                 CREATE_JOIN_LOGIC(5)
+                CREATE_JOIN_LOGIC(6)
+                CREATE_JOIN_LOGIC(7)
+                CREATE_JOIN_LOGIC(8)
+                CREATE_JOIN_LOGIC(9)
+                CREATE_JOIN_LOGIC(10)
+                CREATE_JOIN_LOGIC(11)
+                CREATE_JOIN_LOGIC(12)
+                CREATE_JOIN_LOGIC(13)
+                CREATE_JOIN_LOGIC(14)
+                CREATE_JOIN_LOGIC(15)
 
                 /* Packet used during build, wont be forwarded */
                 if(join_control.stage == 1){
@@ -153,7 +160,7 @@ control Join(
                 join_control.stage = join_control.stage - 1;
 
             } // @atomic hint
-        } // Packet validation 
+        } // Packet validation
     } // Apply
 } // Join control
 

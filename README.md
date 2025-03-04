@@ -119,7 +119,7 @@ Generate SSB datasets in datasets directory
 Read a SSB csv and send it through veths. It is intended to be used as a
 building block for larger queries.
 
-Example:
+Example 1:
 ```bash
 # Performs build on Ingress stage
 sudo python3 send.py --stage 1 -c dataset_samples/customers.sample.csv \
@@ -128,6 +128,27 @@ sudo python3 send.py --stage 1 -c dataset_samples/customers.sample.csv \
 # Probe during Ingress and Egress stage
 sudo python3 send.py --stage 3 -l dataset_samples/lineorder.sample.csv \
     -bk c_custkey -pk lo_custkey --threads 4
+
+# End join
+sudo python3 send.py --stage 0 -l null -bk null -pk null
+```
+
+Example 2:
+```bash
+# Performs build on Ingress stage
+sudo python3 send.py --stage 1 -c dataset_samples/customers.sample.csv \
+    -bk c_custkey -pk null --threads 4
+
+# Probe during Ingress and build during Egress stage
+sudo python3 send.py --stage 2 -l dataset_samples/lineorder.sample.csv \
+    -bk lo_suppkey -pk lo_custkey --threads 4
+
+# Probe during Ingress and Egress stage
+sudo python3 send.py --stage 3 -s dataset_samples/supplier.sample.csv \
+    -bk null -pk s_suppkey --threads 4
+
+# End join
+sudo python3 send.py --stage 0 -l null -bk null -pk null
 ```
 
 This performs a join between customer.c_custkey and lineorder.lo_custkey.

@@ -9,18 +9,8 @@ bind_layers(Ether, JoinControl, type=ETHER_JOINCTL_TYPE)
 
 def stop_condition(packet):
   if JoinControl in packet:
-    joinctl = packet[JoinControl]
-    return joinctl.stage == 0x00
-  
-
-# def process_packet(packet):
-#   if JoinControl in packet:
-#     joinctl = packet[JoinControl]
-
-#     key = joinctl.data
-
-#     return True
-
+    ctl = packet[JoinControl]
+    return ctl.stage == 0
 
 def prnt(packet):
   packet.show()
@@ -32,4 +22,4 @@ result = sniff(iface=interface,
                 stop_filter=stop_condition)
 
 print("Done")
-print(f"Join resulted in {len(result)} packets")
+print(f"Join resulted in {len(result)} received packets")

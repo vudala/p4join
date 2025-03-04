@@ -72,32 +72,33 @@ control Join(
 
     /************************ hash tables ************/
 
-    #define CREATE_HASH_TABLE(N)                                                \
-    Register<bit<32>, bit<HASH_SIZE>>(table_size)  hash_table_##N;              \
-                                                                                \
-    RegisterAction<bit<32>, bit<HASH_SIZE>, bit<32>>(hash_table_##N)            \
-        build_##N = {                                                           \
-            void apply(inout bit<32> register_data, out bit<32> found){         \
-                found = 0;                                                      \
-                if(register_data == 0){                                         \
-                    register_data = join_control.build_key;                     \
-                    /* any data so it doesnt trigger build on next table */     \
-                    found = 1;                                                  \
-                }                                                               \
-            }                                                                   \
-    };                                                                          \
-                                                                                \
-    RegisterAction<bit<32>, bit<HASH_SIZE>, bit<32>>(hash_table_##N)            \
-        probe_##N = {                                                           \
-            void apply(inout bit<32> register_data, out bit<32> result){        \
-                result = register_data;                                         \
-            }                                                                   \
-    };                                                                          \
+    #define CREATE_HASH_TABLE(N)                                               \
+    Register<bit<32>, bit<HASH_SIZE>>(table_size)  hash_table_##N;             \
+                                                                               \
+    RegisterAction<bit<32>, bit<HASH_SIZE>, bit<32>>(hash_table_##N)           \
+        build_##N = {                                                          \
+            void apply(inout bit<32> register_data, out bit<32> found){        \
+                found = 0;                                                     \
+                if(register_data == 0){                                        \
+                    register_data = join_control.build_key;                    \
+                    /* any data so it doesnt trigger build on next table */    \
+                    found = 1;                                                 \
+                }                                                              \
+            }                                                                  \
+    };                                                                         \
+                                                                               \
+    RegisterAction<bit<32>, bit<HASH_SIZE>, bit<32>>(hash_table_##N)           \
+        probe_##N = {                                                          \
+            void apply(inout bit<32> register_data, out bit<32> result){       \
+                result = register_data;                                        \
+            }                                                                  \
+    };                                                                         \
 
     CREATE_HASH_TABLE(1)
     CREATE_HASH_TABLE(2)
     CREATE_HASH_TABLE(3)
     CREATE_HASH_TABLE(4)
+    CREATE_HASH_TABLE(5)
     CREATE_HASH_TABLE(6)
     CREATE_HASH_TABLE(7)
     CREATE_HASH_TABLE(8)
@@ -149,15 +150,28 @@ control Join(
                 if(join_control.stage == 1){
                     tb_drop.apply();
                 }
-                /* Packet probed the table
-                   If probed index doesnt contain same data, drop */
-                else if (join_control.found != join_control.probe_key) {
+                /* 
+                If probed index doesnt contain same data: drop
+
+                The stage == 3 check exists to prevent the last table that probes
+                the registers, during the ingress stage, from getting dropped
+                */
+                else
+                if (join_control.found != join_control.probe_key
+                    && join_control.stage != 3){
                     tb_drop.apply();
                 }
 
-                /* If packet has reached this point, it means it has probed successfully */
-                /* Decrease stage by 1 */
-                join_control.stage = join_control.stage - 1;
+                /* If packet has reached this point, it means it has probed
+                successfully */
+                
+                /*
+                Decrease stage by 1 if stage != 0
+                If not, it means this is a Done type packet, wont build or probe
+                Just forward it
+                */
+                if (join_control.stage != 0)
+                    join_control.stage = join_control.stage - 1;
 
             } // @atomic hint
         } // Packet validation

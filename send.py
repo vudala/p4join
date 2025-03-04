@@ -22,26 +22,6 @@ class Config():
   probe_key = None
   destiny = None
   n_threads = None
-
-
-# def flush():
-#   pkts = []
-#   ether_frame = Ether(dst=cfg.destiny)
-
-#   for i in range(2 ** 16):
-#     join_ctl = JoinControl(
-#       table_t = 0x00,
-#       ctl_type = cfg.ctl_type.value,
-#       hash_key = 0x00,
-#       inserted = 0x00,
-#       data = i
-#     )
-
-#     pkt = ether_frame / join_ctl
-
-#     pkts.append(pkt)
-
-#   sendp(pkts, iface = "veth0", verbose=False)
   
 
 def send_chunk(cfg: Config, lines: list, index: int, chunk_size: int):
@@ -68,7 +48,7 @@ def send_chunk(cfg: Config, lines: list, index: int, chunk_size: int):
     payload = build_pkt(cfg.data_type, l)
 
     join_ctl = JoinControl(
-      table_id = 0x00,
+      table_t = cfg.data_type.value,
       stage = cfg.stage,
       build_key = payload.fields.get(cfg.build_key),
       probe_key = payload.fields.get(cfg.probe_key),
@@ -87,7 +67,7 @@ def send_chunk(cfg: Config, lines: list, index: int, chunk_size: int):
 
 def send_close(cfg: Config):
   """
-  Sends a packet of type CLOSE to destiny
+  Sends a stage 0 packet to destiny (close)
 
   Params
   ------
@@ -97,14 +77,14 @@ def send_close(cfg: Config):
   ether_frame = Ether(dst=cfg.destiny)
 
   join_ctl = JoinControl(
-    table_id = 0x00,
-    stage = 0x00,
-    build_key = 0x00,
-    probe_key = 0x00,
-    hash_key = 0x00,
-    found = 0x00,
-  )
-
+      table_t = 0x00,
+      stage = 0x00,
+      build_key = 0x00,
+      probe_key = 0x00,
+      hash_key = 0x00,
+      found = 0x00,
+    )
+  
   sendp(ether_frame / join_ctl, iface = 'veth0', verbose=False)
   
 
@@ -165,17 +145,13 @@ def parse_csv(file: str) -> list:
 
 
 def run(cfg: Config):
-  # if cfg.ctl_type == ControlType.FLUSH:
-  #   flush()
-  #   return
+  if cfg.stage == 0:
+    send_close(cfg)
+    return
 
   lines = parse_csv(cfg.file)
 
   split_workload(cfg, lines)
-
-  print("Main thread sending CLOSE packet on veth0")
-  send_close(cfg)
-  print("Done")
 
 
 def get_args():
@@ -188,7 +164,7 @@ def get_args():
 
   t_group.add_argument("-l", nargs=1, type=str, help="Use table type lineorder")
   t_group.add_argument("-c", nargs=1, type=str, help="Use table type customer")
-  # t_group.add_argument("-s", nargs=1, type=str, help="Use table type supplier")
+  t_group.add_argument("-s", nargs=1, type=str, help="Use table type supplier")
   # t_group.add_argument("-d", nargs=1, type=str, help="Use table type date")
   # t_group.add_argument("-p", action="store_true", help="Use table type part")
 
@@ -235,12 +211,12 @@ if __name__ == "__main__":
   elif args.l:
     data_t = TableType.LINEORDER
     file = args.l[0]
+  elif args.s:
+    data_t = TableType.SUPPLIER
+    file = args.s[0]
   # elif args.d:
   #   data_t = TableType.DATE
   #   file = args.d[0]
-  # elif args.s:
-  #   data_t = TableType.SUPPLIER
-  #   file = args.s[0]
   # elif args.p:
   #   data_t = TableType.PART
 

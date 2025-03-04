@@ -15,8 +15,7 @@
 typedef bit<48> mac_addr_t;
 typedef bit<16> ether_type_t;
 
-const ether_type_t ETHERTYPE_IPV4 = 16w0x0800;
-const ether_type_t ETHERTYPE_JOIN_CONTROL = 16w0x8200;
+const ether_type_t ETHERTYPE_JOIN_CONTROL = 0x8200;
 
 header ethernet_h {
     mac_addr_t dst_addr;
@@ -40,7 +39,7 @@ typedef bit<64> uint64;
 
 header join_control_h {
     bit<8> table_id;    // which table it refers to
-    bit<8> stage;       // stage (1,2,3) (build, probe/build, probe)
+    bit<8> stage;       // stage (0,1,2,3) (done, build, probe/build, probe)
     bit<32> build_key;  // key to be used on build
     bit<32> probe_key;  // key to be used on probe
     bit<16> hash_key;   // ffw store hash crc 16

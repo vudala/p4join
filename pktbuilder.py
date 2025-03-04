@@ -35,9 +35,21 @@ def build_customer(line: str):
   )
 
 
+def build_supplier(line: str):
+  return Supplier(
+    s_name = int(line[0]),
+    s_address = line[1],
+    s_city = line[2],
+    s_nation = line[3],
+    s_region = line[4],
+    s_phone = line[5],
+  )
+
+
 build_args = {
   TableType.LINEORDER: build_lineorder,
   TableType.CUSTOMER: build_customer,
+  TableType.SUPPLIER: build_supplier,
 }
 
 def build_pkt(data_t: TableType, line: str):

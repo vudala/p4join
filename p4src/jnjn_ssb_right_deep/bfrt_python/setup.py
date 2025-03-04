@@ -2,7 +2,7 @@ from collections import namedtuple
 from ipaddress import ip_address
 from select import select
 
-P4_PROG = "jnjn_ssb" # replace with the current P4 program
+P4_PROG = "jnjn_ssb_right_deep" # replace with the current P4 program
 
 print("Starting setup for {prog}".format(prog=P4_PROG))
 

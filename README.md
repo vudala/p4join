@@ -50,18 +50,27 @@ The number of veths is confirgurable, but the default is 64.
 ### Step 2 - Compile the P4 program
 
 In the compilations targets folder of the machine (~/src in my case) that
-you are running this setup, create a symlink that points to the project in this
+you are running this setup, create symlinks that points to the projects in this
 repository, wherever you cloned it. Something like this:
 
 ```bash
 cd ~/src
-ln -s ~/Documents/p4join/p4src/jnjn_ssb jnjn_ssb
+ln -s ~/Documents/p4join/p4src/jnjn_ssb_left_deep jnjn_ssb_left_deep
+ln -s ~/Documents/p4join/p4src/jnjn_ssb_right_deep jnjn_ssb_right_deep
 ```
 
-Then compile the P4 program, use the following command:
+Then use a env var to select which one of the you would like to use:
+
+```bash
+export PROGRAM=jnjn_ssb_left_deep
+# or
+export PROGRAM=jnjn_ssb_right_deep
+```
+
+Compile the P4 program, use the following command:
 ```bash
 cd ~/src
-./../p4_build.sh jnjn_ssb
+./../p4_build.sh $PROGRAM
 ```
 
 ### Step 3 - Run switchd
@@ -73,7 +82,7 @@ Create a terminal session (1) and execute the following command:
 
 ```bash
 cd ~/bf-sde-9.9.0
-./run_switchd.sh -p jnjn_ssb -c $SDE_INSTALL/share/p4/targets/tofino2/jnjn_ssb/jnjn_ssb.conf --arch tf2
+./run_switchd.sh -p $PROGRAM -c $SDE_INSTALL/share/p4/targets/tofino2/$PROGRAM/$PROGRAM.conf --arch tf2
 ```
 
 ### Step 4 - Run Tofino 2 model
@@ -84,8 +93,8 @@ where you cloned this repo.
 
 ```bash
 cd ~/bf-sde-9.9.0
-./run_tofino_model.sh -p jnjn_ssb -c $SDE_INSTALL/share/p4/targets/tofino2/jnjn_ssb/jnjn_ssb.conf --arch tf2 \
-    -f /home/dev/Documents/p4join/p4src/jnjn_ssb/ports.json
+./run_tofino_model.sh -p $PROGRAM -c $SDE_INSTALL/share/p4/targets/tofino2/$PROGRAM/$PROGRAM.conf --arch tf2 \
+    -f /home/dev/Documents/p4join/p4src/ports.json
 ```
 
 ### Step 5 - Update the routing tables via control plane
@@ -96,7 +105,7 @@ Once you are, execute the following script to upda      te the routing tables of
 switch:
 
 ```bash
-bfrt_python /home/dev/Documents/p4join/p4src/jnjn_ssb/bfrt_python/setup.py true
+bfrt_python /home/dev/Documents/p4join/p4src/$PROGRAM/bfrt_python/setup.py true
 ```
 
 This also takes a while, but once you are able to interact with the bfrt shell

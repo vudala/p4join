@@ -187,8 +187,8 @@ def get_args():
 
   # Destiny field
   parser.add_argument(
-    "--dst", type=str, default='00:00:00:00:00:01',
-    help="Destiny MAC (default: '00:00:00:00:00:01')"
+    "--dst", type=str, default='00:00:00:00:00:03',
+    help="Destiny MAC (default: '00:00:00:00:00:03')"
   )
 
   return parser.parse_args()

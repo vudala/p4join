@@ -25,27 +25,6 @@ https://www.cidrdb.org/cidr2019/papers/p142-lerner-cidr19.pdf
 The overall idea is to use Ingress to absorb build keys from table 1 and
 Egress for the table 2.
 
-Each packet goes through the pipeline and is modified, changing its "stage".
-Stage 1 is build, stage > 1 is probe.
-Note that a packet can have multiple probe stages.
-For instance, for the following execution plan the pipeline would happen
-like this:
-       
-     join
-    /    \
-  join    R
- /    \
-T      S
-
-   |        INGRESS            | LB |         EGRESS            |
-T: | Stage 1 -> build -> drop; | LB |           nop             |
-S: | Stage 2 -> probe -> fwd;  | LB | Stage 1 -> build -> drop; |
-R: | Stage 3 -> probe -> fwd;  | LB | Stage 2 -> probe -> fwd;  |
-
-Everytime a packet goes through the tables from ingress, the stage is decresead
-by 1.
-
-
 */
 control Join(
     /* User */
@@ -124,7 +103,7 @@ control Join(
                     }                                                                     \
                 }                                                                         \
                 /* PROBE */                                                               \
-                else if (join_control.stage > 1) {                                        \
+                else if (join_control.stage == 3) {                                       \
                     /* if not probed in previous table */                                 \
                     if (join_control.found != join_control.probe_key)                     \
                         join_control.found = probe_##N.execute(join_control.hash_key);    \
@@ -158,19 +137,21 @@ control Join(
                 */
                 else
                 if (join_control.found != join_control.probe_key
-                    && join_control.stage != 3){
+                    && join_control.stage == 3){
                     tb_drop.apply();
                 }
+
+                // Reset probe flag
+                join_control.found = 0;
 
                 /* If packet has reached this point, it means it has probed
                 successfully */
                 
                 /*
-                Decrease stage by 1 if stage != 0
-                If not, it means this is a Done type packet, wont build or probe
-                Just forward it
+                Decrease stage by 1 if stage == 2
+                If not, it means this is a DONE or PROBE type packet
                 */
-                if (join_control.stage != 0)
+                if (join_control.stage == 2)
                     join_control.stage = join_control.stage - 1;
 
             } // @atomic hint

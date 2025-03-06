@@ -55,22 +55,25 @@ repository, wherever you cloned it. Something like this:
 
 ```bash
 cd ~/src
-ln -s ~/Documents/p4join/p4src/jnjn_ssb_left_deep jnjn_ssb_left_deep
-ln -s ~/Documents/p4join/p4src/jnjn_ssb_right_deep jnjn_ssb_right_deep
+ln -s ~/Documents/p4join/p4src/jnjn_left_deep jnjn_left_deep
+ln -s ~/Documents/p4join/p4src/jnjn_right_deep jnjn_right_deep
+ln -s ~/Documents/p4join/p4src/forward forward
 ```
 
 Then use a env var to select which one of the you would like to use:
 
 ```bash
-export PROGRAM=jnjn_ssb_left_deep
+export P4TARGET=jnjn_left_deep
 # or
-export PROGRAM=jnjn_ssb_right_deep
+export P4TARGET=jnjn_right_deep
+# or
+export P4TARGET=forward
 ```
 
 Compile the P4 program, use the following command:
 ```bash
 cd ~/src
-./../p4_build.sh $PROGRAM
+./../p4_build.sh $P4TARGET
 ```
 
 ### Step 3 - Run switchd
@@ -82,7 +85,7 @@ Create a terminal session (1) and execute the following command:
 
 ```bash
 cd ~/bf-sde-9.9.0
-./run_switchd.sh -p $PROGRAM -c $SDE_INSTALL/share/p4/targets/tofino2/$PROGRAM/$PROGRAM.conf --arch tf2
+./run_switchd.sh -p $P4TARGET -c $SDE_INSTALL/share/p4/targets/tofino2/$P4TARGET/$P4TARGET.conf --arch tf2
 ```
 
 ### Step 4 - Run Tofino 2 model
@@ -93,7 +96,7 @@ where you cloned this repo.
 
 ```bash
 cd ~/bf-sde-9.9.0
-./run_tofino_model.sh -p $PROGRAM -c $SDE_INSTALL/share/p4/targets/tofino2/$PROGRAM/$PROGRAM.conf --arch tf2 \
+./run_tofino_model.sh -p $P4TARGET -c $SDE_INSTALL/share/p4/targets/tofino2/$P4TARGET/$P4TARGET.conf --arch tf2 \
     -f /home/dev/Documents/p4join/p4src/ports.json
 ```
 
@@ -105,7 +108,9 @@ Once you are, execute the following script to upda      te the routing tables of
 switch:
 
 ```bash
-bfrt_python /home/dev/Documents/p4join/p4src/$PROGRAM/bfrt_python/setup.py true
+bfrt_python /home/dev/Documents/p4join/p4src/jnjn_left_deep/bfrt_python/setup.py true
+bfrt_python /home/dev/Documents/p4join/p4src/jnjn_right_deep/bfrt_python/setup.py true
+bfrt_python /home/dev/Documents/p4join/p4src/forward/bfrt_python/setup.py true
 ```
 
 This also takes a while, but once you are able to interact with the bfrt shell

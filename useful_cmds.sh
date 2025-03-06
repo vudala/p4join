@@ -7,13 +7,19 @@
 # Create symlink
 ln -s path/to/src symname
 
-# Build
-cd ~/src
-./../p4_build.sh jnjn_ssb
-
 # Up veths
 cd ~/bf-sde-9.9.0/install/bin/
 sudo ./veth_setup.sh
+
+# Build
+export PROGRAM=jnjn_left_deep
+# or
+export PROGRAM=jnjn_right_deep
+# or
+export PROGRAM=forward
+
+cd ~/src
+./../p4_build.sh $PROGRAM
 
 # Run switchd
 cd ~/bf-sde-9.9.0
@@ -26,4 +32,5 @@ cd ~/bf-sde-9.9.0
     -f /home/dev/Documents/p4join/p4src/jnjn_ssb/ports.json
 
 # Control plane set ports mapping
-bfrt_python /home/dev/Documents/p4join/p4src/jnjn_ssb/bfrt_python/setup.py true
+bfrt_python /home/dev/Documents/p4join/p4src/$PROGRAM/bfrt_python/setup.py true
+

@@ -170,10 +170,6 @@ def get_args():
 
   parser.add_argument("--stage", type=int,
                          help="Which stage to send")
-  # ctl_group.add_argument("--probe", action="store_true",
-  #                        help="Send table as probe") 
-  # ctl_group.add_argument("--flush", action="store_true",
-  #                        help="Flush the hash tables")
 
   # Number of threads to use
   parser.add_argument(
@@ -191,8 +187,8 @@ def get_args():
 
   # Destiny field
   parser.add_argument(
-    "--dst", type=str, default='00:00:00:00:00:03',
-    help="Destiny MAC (default: '00:00:00:00:00:03')"
+    "--dst", type=str, default='00:00:00:00:00:01',
+    help="Destiny MAC (default: '00:00:00:00:00:01')"
   )
 
   return parser.parse_args()

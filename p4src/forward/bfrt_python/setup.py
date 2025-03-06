@@ -2,7 +2,7 @@ from collections import namedtuple
 from ipaddress import ip_address
 from select import select
 
-P4_PROG = "jnjn_ssb_right_deep" # replace with the current P4 program
+P4_PROG = "forward" # replace with the current P4 program
 
 print("Starting setup for {prog}".format(prog=P4_PROG))
 
@@ -17,7 +17,6 @@ port_map = [ # port_name | mac | speed
     ("2/0", "00:00:00:00:00:02", "BF_SPEED_50G"),
     ("3/0", "00:00:00:00:00:03", "BF_SPEED_50G"),
     ("4/0", "00:00:00:00:00:04", "BF_SPEED_50G"),
-
 ]
 
 SwitchPort = namedtuple("SwitchPort", [ "port_name", "mac", "speed" ])

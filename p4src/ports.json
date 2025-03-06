@@ -6,11 +6,11 @@
     },
     {
       "device_port": 1,
-      "if": "eth1"
+      "if": "veth1"
     },
     {
       "device_port": 2,
-      "if": "eth2"
+      "if": "veth2"
     },
     {
       "device_port": 3,

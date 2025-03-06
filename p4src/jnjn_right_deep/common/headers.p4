@@ -39,9 +39,11 @@ typedef bit<64> uint64;
 
 header join_control_h {
     bit<8> table_id;    // which table it refers to
-    bit<8> stage;       // stage (0,1,2,3) (done, build, probe/build, probe)
+    bit<8> stage;       // stage (0,1,2,3) (done, build 1, build 2, probe)
+    bit<8> curr_stage;  // current stage in the pipeline (0 ingress, 1 egress)
     bit<32> build_key;  // key to be used on build
-    bit<32> probe_key;  // key to be used on probe
+    bit<32> probe_key1; // key to be used on probe 1
+    bit<32> probe_key2; // key to be used on probe 2
     bit<16> hash_key;   // ffw store hash crc 16
     bit<32> found;      // ffw pkt found value
 }

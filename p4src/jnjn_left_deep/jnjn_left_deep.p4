@@ -25,6 +25,27 @@ https://www.cidrdb.org/cidr2019/papers/p142-lerner-cidr19.pdf
 The overall idea is to use Ingress to absorb build keys from table 1 and
 Egress for the table 2.
 
+Each packet goes through the pipeline and is modified, changing its "stage".
+Stage 1 is build, stage > 1 is probe.
+Note that a packet can have multiple probe stages.
+For instance, for the following execution plan the pipeline would happen
+like this:
+       
+     join
+    /    \
+  join    R
+ /    \
+T      S
+
+   |        INGRESS            | LB |         EGRESS            |
+T: | Stage 1 -> build -> drop; | LB |           nop             |
+S: | Stage 2 -> probe -> fwd;  | LB | Stage 1 -> build -> drop; |
+R: | Stage 3 -> probe -> fwd;  | LB | Stage 2 -> probe -> fwd;  |
+
+Everytime a packet goes through the tables from ingress, the stage is decresead
+by 1.
+
+
 */
 control Join(
     /* User */
@@ -146,7 +167,7 @@ control Join(
                 
                 /*
                 Decrease stage by 1 if stage != 0
-                If not, it means this is a Done type packet, wont build or probe
+                If not, it means this is a DONE type packet, wont build or probe
                 Just forward it
                 */
                 if (join_control.stage != 0)

@@ -62,7 +62,7 @@ parser SwitchIngressParser(packet_in pkt,
         }
     }
 
-     state parse_join_control {
+    state parse_join_control {
         pkt.extract(hdr.join_control);
         transition accept;
     }

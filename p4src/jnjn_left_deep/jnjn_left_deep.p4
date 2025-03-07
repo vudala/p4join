@@ -162,6 +162,8 @@ control Join(
                     tb_drop.apply();
                 }
 
+                join_control.found = 0;
+
                 /* If packet has reached this point, it means it has probed
                 successfully */
                 

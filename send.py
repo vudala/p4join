@@ -57,10 +57,12 @@ def send_chunk(cfg: Config, lines: list, index: int, chunk_size: int):
     )
 
     pkt = ether_frame / join_ctl / payload
+    pkts.append(pkt)
 
-  iface = f"veth{index}" 
+  #iface = f"veth{index}" 
+  iface = "veth9" # working one
   print(f"Thread {index} sending {len(pkts)} packets on iface {iface}")
-  sendp(pkt, iface = iface, verbose=False)
+  sendp(pkts, iface = iface, verbose=False)
   print(f"Thread {index} done")
 
 

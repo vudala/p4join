@@ -21,7 +21,7 @@ class Config():
   build_key = None
   probe_key = None
   destiny = None
-  n_threads = None
+  threads = None
   
 
 def send_chunk(cfg: Config, lines: list, index: int, chunk_size: int):
@@ -58,10 +58,9 @@ def send_chunk(cfg: Config, lines: list, index: int, chunk_size: int):
 
     pkt = ether_frame / join_ctl / payload
 
-    pkts.append(pkt)
-
-  print(f"Thread {index} sending {end_i - start_i + 1} packets on iface veth{index}")
-  sendp(pkts, iface = f'veth{index}', verbose=False)
+  iface = f"veth{index}" 
+  print(f"Thread {index} sending {len(pkts)} packets on iface {iface}")
+  sendp(pkt, iface = iface, verbose=False)
   print(f"Thread {index} done")
 
 
@@ -85,7 +84,7 @@ def send_close(cfg: Config):
       found = 0x00,
     )
   
-  sendp(ether_frame / join_ctl, iface = 'veth0', verbose=False)
+  sendp(ether_frame / join_ctl, iface = 'veth9', verbose=False)
   
 
 def split_workload(cfg: Config, lines: list):
@@ -100,11 +99,11 @@ def split_workload(cfg: Config, lines: list):
     - List containing the lines of the CSV
   """
   size = len(lines)
-  chunk_size = ceil(size / cfg.n_threads)
+  chunk_size = ceil(size / cfg.threads)
 
   threads = []
 
-  for index in range(cfg.n_threads):
+  for index in range(cfg.threads):
     thrd = threading.Thread(
       target=send_chunk,
       args=(cfg, lines, index, chunk_size)
@@ -222,6 +221,6 @@ if __name__ == "__main__":
   cfg.build_key = args.build_key
   cfg.probe_key = args.probe_key
   cfg.destiny = args.dst
-  cfg.n_threads = args.threads
+  cfg.threads = args.threads
 
   run(cfg)

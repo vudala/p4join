@@ -5,6 +5,13 @@ from tables import *
 interface = 'veth24'
 
 bind_layers(Ether, JoinControl, type=ETHER_JOINCTL_TYPE)
+class Test(Packet):
+    name = 'Test'
+    fields_desc = [
+        IntField('index', -1)
+    ]
+
+bind_layers(Ether, Test, type=0x8234)
 
 count = 0
 

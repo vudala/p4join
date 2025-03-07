@@ -7,6 +7,7 @@ interface = 'veth24'
 bind_layers(Ether, JoinControl, type=ETHER_JOINCTL_TYPE)
 
 hash_table = {}
+result = []
 
 def stop_condition(packet):
   if JoinControl in packet:
@@ -24,8 +25,7 @@ def build(packet):
     if joinctl.stage == 1:
       global hash_table 
       hash_table[key] = 'Set'
-  
-  return True
+      print(f"Set key {key}")
 
 
 def probe(packet):
@@ -33,51 +33,41 @@ def probe(packet):
     joinctl = packet[JoinControl]
     key = joinctl.probe_key
 
+    packet.show()
+    print()
+
     global hash_table
+    global result
+
     if joinctl.stage > 1 and key in hash_table:
-      return True
+      result.append(packet)
 
-    if joinctl.stage == 0:
-      return True
-
-  return False
-
-
-print("Sniffing Ethernet frames...")
 
 print("Sniffing packets for build")
-
-sniff(iface=interface, lfilter=build, stop_filter=stop_condition)
+sniff(iface=interface, prn=build, stop_filter=stop_condition)
 print("Build done")
 
 print("Sniffing packets for probe 1")
-join1_result = sniff(
-            iface=interface,
-            lfilter=probe,
-            stop_filter=stop_condition
-          )
-# Remove last packet, which is included so the stop filter can work
-join1_result = join1_result[:-1]
+sniff(iface=interface, prn=probe, stop_filter=stop_condition)
 print("Probe done")
+
+print(f"Matched {len(result)} packets")
 
 
 print("Building hash table from intermediary join")
 hash_table.clear()
-for p in join1_result:
+
+for p in result:
   joinctl = p[JoinControl]
   key = joinctl.build_key
   hash_table[key] = 'Set'
 
+result.clear()
+
 print("Sniffing packets for probe 2")
-join2_result = sniff(
-            iface=interface,
-            lfilter=probe,
-            stop_filter=stop_condition
-          )
-# Remove last packet, which is included so the stop filter can work
-join2_result = join2_result[:-1]
+sniff(iface=interface, prn=probe, stop_filter=stop_condition)
 print("Probe done")
 
 print("Query done")
 
-print(f"Query resulted in {len(join2_result)} matched packets")
+print(f"Query resulted in {len(result)} matched packets")

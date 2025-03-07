@@ -154,7 +154,7 @@ sudo python3 send.py --stage 1 -c dataset_samples/customers.sample.csv \
     -bk c_custkey -pk null --threads 4
 
 # Probe during Ingress and build during Egress stage
-sudo python3 send.py --stage 2 -l dataset_samples/lineorder.sample.csv \
+sudo python3 send.py --stage 2 -l dataset_samples/lineorder.small.sample.csv \
     -bk lo_suppkey -pk lo_custkey --threads 4
 
 # Probe during Ingress and Egress stage

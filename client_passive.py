@@ -1,6 +1,7 @@
 from scapy.all import *
 from scapy.layers.l2 import Ether
 from tables import *
+import datetime
 
 interface = 'veth24'
 
@@ -8,6 +9,9 @@ bind_layers(Ether, JoinControl, type=ETHER_JOINCTL_TYPE)
 
 hash_table = {}
 result = []
+
+first_time = None
+last_time = None
 
 def stop_condition(packet):
   if JoinControl in packet:
@@ -17,41 +21,57 @@ def stop_condition(packet):
 
 
 def build(packet):
+  global first_time
+  global last_time
+  global hash_table 
+
   if JoinControl in packet:
     joinctl = packet[JoinControl]
 
     key = joinctl.build_key
 
     if joinctl.stage == 1:
-      global hash_table 
-      hash_table[key] = 'Set'
-      print(f"Set key {key}")
+      hash_table[key] = 'Set' 
+    
+    if first_time == None:
+      first_time = datetime.datetime.now()
+
+    last_time = datetime.datetime.now()
 
 
 def probe(packet):
+  global first_time
+  global last_time
+  global hash_table
+  global result
+
   if JoinControl in packet:
     joinctl = packet[JoinControl]
     key = joinctl.probe_key
 
-    packet.show()
-    print()
-
-    global hash_table
-    global result
-
     if joinctl.stage > 1 and key in hash_table:
       result.append(packet)
+
+    if first_time == None:
+      first_time = datetime.datetime.now()
+
+    last_time = datetime.datetime.now()
 
 
 print("Sniffing packets for build")
 sniff(iface=interface, prn=build, stop_filter=stop_condition)
 print("Build done")
+print(f"Time elapsed: {last_time - first_time}")
+
+first_time = None
 
 print("Sniffing packets for probe 1")
 sniff(iface=interface, prn=probe, stop_filter=stop_condition)
 print("Probe done")
-
 print(f"Matched {len(result)} packets")
+print(f"Time elapsed: {last_time - first_time}")
+
+first_time = None
 
 
 print("Building hash table from intermediary join")
@@ -67,6 +87,7 @@ result.clear()
 print("Sniffing packets for probe 2")
 sniff(iface=interface, prn=probe, stop_filter=stop_condition)
 print("Probe done")
+print(f"Time elapsed: {last_time - first_time}")
 
 print("Query done")
 

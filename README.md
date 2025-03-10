@@ -108,9 +108,8 @@ Once you are, execute the following script to upda      te the routing tables of
 switch:
 
 ```bash
-bfrt_python /home/dev/Documents/p4join/p4src/jnjn_left_deep/bfrt_python/setup.py true
-bfrt_python /home/dev/Documents/p4join/p4src/jnjn_right_deep/bfrt_python/setup.py true
-bfrt_python /home/dev/Documents/p4join/p4src/forward/bfrt_python/setup.py true
+cd ~/bf-sde-9.9.0
+./run_bfshell.sh -b /home/dev/Documents/p4join/p4src/$P4TARGET/bfrt_python/setup.py -i
 ```
 
 This also takes a while, but once you are able to interact with the bfrt shell

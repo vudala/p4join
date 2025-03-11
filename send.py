@@ -12,6 +12,16 @@ from scapy.layers.l2 import Ether
 from tables import *
 from pktbuilder import build_pkt
 
+# Iface available to be used
+ifaces = [
+  "veth8",
+  "veth9",
+  "veth16",
+  "veth17",
+  "veth32",
+  "veth33"
+]
+
 class Config():
   """
   Wrapper class for program configurations
@@ -61,7 +71,7 @@ def send_chunk(cfg: Config, lines: list, index: int, chunk_size: int):
     pkts.append(pkt)
 
   #iface = f"veth{index}" 
-  iface = "veth9" # working one
+  iface = f"veth{ifaces[index]}" # working one
   print(f"Thread {index} sending {len(pkts)} packets on iface {iface}")
   sendp(pkts, iface = iface, verbose=False)
   print(f"Thread {index} done")

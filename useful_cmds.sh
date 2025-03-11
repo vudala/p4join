@@ -12,14 +12,14 @@ cd ~/bf-sde-9.9.0/install/bin/
 sudo ./veth_setup.sh
 
 # Build
-export PROGRAM=jnjn_left_deep
+export P4TARGET=jnjn_left_deep
 # or
-export PROGRAM=jnjn_right_deep
+export P4TARGET=jnjn_right_deep
 # or
-export PROGRAM=forward
+export P4TARGET=forward
 
 cd ~/src
-./../p4_build.sh $PROGRAM
+./../p4_build.sh $P4TARGET
 
 # Run switchd
 cd ~/bf-sde-9.9.0
@@ -32,5 +32,5 @@ cd ~/bf-sde-9.9.0
     -f /home/dev/Documents/p4join/p4src/jnjn_ssb/ports.json
 
 # Control plane set ports mapping
-bfrt_python /home/dev/Documents/p4join/p4src/$PROGRAM/bfrt_python/setup.py true
+bfrt_python /home/dev/Documents/p4join/p4src/$P4TARGET/bfrt_python/setup.py true
 

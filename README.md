@@ -100,21 +100,26 @@ cd ~/bf-sde-9.9.0
     -f /home/dev/Documents/p4join/p4src/ports.json
 ```
 
+Run tests:
+```bash
+cd ~/bf-sde-9.9.0
+./run_tofino_model.sh -p $P4TARGET -c $SDE_INSTALL/share/p4/targets/tofino2/$P4TARGET/$P4TARGET.conf --arch tf2 \
+    -f /home/dev/Documents/p4join/p4src/ports.json --log-dir ~/bf-sde-9.9.0/logs
+```
+
+
 ### Step 5 - Update the routing tables via control plane
 
-Go back to terminal 1, and wait until you are able to interact with the bfshell.
-This process might take tens of seconds, so be patient.
-Once you are, execute the following script to upda      te the routing tables of the
-switch:
+Execute the following script on another terminal, to update the routing tables of the
+switch (remember to set the P4TARGET as before):
 
 ```bash
 cd ~/bf-sde-9.9.0
-./run_bfshell.sh -b /home/dev/Documents/p4join/p4src/$P4TARGET/bfrt_python/setup.py -i
+./run_bfshell.sh -b /home/dev/Documents/p4join/p4src/$P4TARGET/bfrt_python/setup.py
 ```
 
-This also takes a while, but once you are able to interact with the bfrt shell
-again, the setup is done.
-Then you can start sending packets through the switch.
+This takes some tens of seconds, be patient.
+After its done, you can start sending packets through the switch.
 
 ### Optional step
 
@@ -132,48 +137,76 @@ Generate SSB datasets in datasets directory
 Read a SSB csv and send it through veths. It is intended to be used as a
 building block for larger queries.
 
-Example 1:
-```bash
-# Performs build on Ingress stage
-sudo python3 send.py --stage 1 -c dataset_samples/customers.sample.csv \
-    -bk c_custkey -pk null --threads 4
-
-# Probe during Ingress and Egress stage
-sudo python3 send.py --stage 3 -l dataset_samples/lineorder.small.sample.csv \
-    -bk c_custkey -pk lo_custkey --threads 4
-
-# End join
-sudo python3 send.py --stage 0 -l null -bk null -pk null
-```
-
-Example 2:
-```bash
-# Performs build on Ingress stage
-sudo python3 send.py --stage 1 -c dataset_samples/customers.sample.csv \
-    -bk c_custkey -pk null --threads 4
-
-# Probe during Ingress and build during Egress stage
-sudo python3 send.py --stage 2 -l dataset_samples/lineorder.small.sample.csv \
-    -bk lo_suppkey -pk lo_custkey --threads 4
-
-# Probe during Ingress and Egress stage
-sudo python3 send.py --stage 3 -s dataset_samples/supplier.sample.csv \
-    -bk null -pk s_suppkey --threads 4
-
-# End join
-sudo python3 send.py --stage 0 -l null -bk null -pk null
-```
-
-This performs a join between customer.c_custkey and lineorder.lo_custkey.
+The follwing code performs a join between customer.c_custkey and
+lineorder.lo_custkey. Using the jnjn_left_deep code.
 It happens in the following way:
 - customers is sent first in build phase, the workload is split between 4
 threads, that will forward packets to the same destination but through different
 interfaces.
 - then the lineorder table is sent on probe phase, again with 4 threads
 
-With this, a join is made.
+#### Join Left Deep:
+
+Use it along with `client_active.py` on another terminal to sniff the results.
+
+```bash
+# Performs build on Ingress stage
+sudo python3 send.py --stage 1 -c dataset_samples/customers.sample.csv \
+    -bk c_custkey -pk null --threads 4
+
+# Probe during Ingress and Egress stage
+sudo python3 send.py --stage 3 -l dataset_samples/lineorder.sample.csv \
+    -bk c_custkey -pk lo_custkey --threads 4
+
+# End join
+sudo python3 send.py --stage 0 -l null -bk null -pk null
+```
+
+#### Join Join Left Deep:
+
+Use it along with `client_active.py` on another terminal to sniff the results.
+
+```bash
+# Performs build on Ingress stage
+sudo python3 send.py --stage 1 -c datasets/customers.csv \
+    -bk c_custkey -pk null --threads 4
+
+# Probe during Ingress and build during Egress stage
+sudo python3 send.py --stage 2 -l datasets/lineorder.csv \
+    -bk lo_suppkey -pk lo_custkey --threads 4
+
+# Probe during Ingress and Egress stage
+sudo python3 send.py --stage 3 -s datasets/supplier.csv \
+    -bk null -pk s_suppkey --threads 4
+
+# End join
+sudo python3 send.py --stage 0 -l null -bk null -pk null
+```
 
 
-### `sniff.py`
+#### Join Join Passive:
 
-Sniff destiny iface and display received packets
+Use it along with `client_passive.py` on another terminal to sniff the results.
+
+```bash
+# Send build packets
+sudo python3 send.py --stage 1 -c datasets/customers.csv \
+    -bk c_custkey -pk null --threads 4
+
+# Build done
+sudo python3 send.py --stage 0 -l null -bk null -pk null
+
+# Probe on built table
+sudo python3 send.py --stage 2 -l datasets/lineorder.csv \
+    -bk lo_suppkey -pk lo_custkey --threads 4
+
+# Probe 1 done
+sudo python3 send.py --stage 0 -l null -bk null -pk null
+
+# Probe intermediary result
+sudo python3 send.py --stage 3 -s datasets/supplier.csv \
+    -bk null -pk s_suppkey --threads 4
+
+# Probe 2 done, Query done
+sudo python3 send.py --stage 0 -l null -bk null -pk null
+```

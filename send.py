@@ -2,6 +2,7 @@
 import argparse
 from math import ceil
 import csv
+from datetime import datetime
 
 # 3rd party
 from scapy.all import *
@@ -150,9 +151,16 @@ def run(cfg: Config):
     send_close(cfg)
     return
 
+  start = datetime.now()
+  print(f"Send starting on {start}")
+
   lines = parse_csv(cfg.file)
 
   split_workload(cfg, lines)
+
+  end = datetime.now()
+  print(f"Send done at {end}")
+  print(f"Elapsed time {end - start}")
 
 
 def get_args():

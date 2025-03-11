@@ -1,6 +1,7 @@
 from scapy.all import *
 from scapy.layers.l2 import Ether
 from tables import *
+from datetime import datetime
 
 interface = 'veth24'
 
@@ -12,14 +13,19 @@ def stop_condition(packet):
     ctl = packet[JoinControl]
     return ctl.stage == 0
 
-def prnt(packet):
-  packet.show()
+last_time = None
+def proc(packet):
+  global last_time
+  if JoinControl in packet:
+    ctl = packet[JoinControl]
+    if ctl.stage != 0:
+      last_time = datetime.now()
 
 print("Sniffing Ethernet frames...")
 
 result = sniff(iface=interface,
-                prn=prnt,
+                prn=proc,
                 stop_filter=stop_condition)
 
-print("Done")
+print(f"Done at {last_time}")
 print(f"Join resulted in {len(result)} received packets")

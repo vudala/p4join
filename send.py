@@ -53,8 +53,10 @@ def send_chunk(cfg: Config, lines: list, index: int, chunk_size: int):
   start_i = index * chunk_size
   end_i = start_i + chunk_size
 
-  pkts = []
+  iface = ifaces[index]
   ether_frame = Ether(dst=cfg.destiny)
+  
+  print(f"Thread {index} sending {chunk_size} packets on iface {iface}")
   for l in lines[start_i:end_i]:
     payload = build_pkt(cfg.data_type, l)
 
@@ -68,12 +70,8 @@ def send_chunk(cfg: Config, lines: list, index: int, chunk_size: int):
     )
 
     pkt = ether_frame / join_ctl / payload
-    pkts.append(pkt)
+    sendp(pkt, iface = iface, verbose=False)
 
-  #iface = f"veth{index}" 
-  iface = f"veth{ifaces[index]}" # working one
-  print(f"Thread {index} sending {len(pkts)} packets on iface {iface}")
-  sendp(pkts, iface = iface, verbose=False)
   print(f"Thread {index} done")
 
 

@@ -61,6 +61,7 @@ def probe(packet):
 print("Sniffing packets for build")
 sniff(iface=interface, prn=build, stop_filter=stop_condition)
 print("Build done")
+print(f"Start: {first_time} End: {last_time}")
 print(f"Elapsed time: {last_time - first_time}")
 
 first_time = None
@@ -69,6 +70,7 @@ print("Sniffing packets for probe 1")
 sniff(iface=interface, prn=probe, stop_filter=stop_condition)
 print("Probe done")
 print(f"Matched {len(result)} packets")
+print(f"Start: {first_time} End: {last_time}")
 print(f"Elapsed time: {last_time - first_time}")
 
 first_time = None
@@ -82,11 +84,14 @@ for p in result:
   hash_table[key] = True
 result.clear()
 last_time = datetime.now()
+print(f"Start: {first_time} End: {last_time}")
 print(f"Elapsed time: {last_time - first_time}")
 
+first_time = None
 print("Sniffing packets for probe 2")
 sniff(iface=interface, prn=probe, stop_filter=stop_condition)
 print("Probe done")
+print(f"Start: {first_time} End: {last_time}")
 print(f"Elapsed time: {last_time - first_time}")
 
 print("Query done")

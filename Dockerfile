@@ -11,7 +11,8 @@ RUN apt-get upgrade -y
 
 RUN apt-get install -y \
         git \
-        sudo
+        sudo \
+        python3
 
 # Add user dev group dev
 ARG USERNAME=dev

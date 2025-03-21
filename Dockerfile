@@ -31,4 +31,5 @@ RUN git clone https://github.com/p4lang/open-p4studio.git
 
 WORKDIR /home/$USERNAME/open-p4studio
 RUN git submodule update --init --recursive
-#RUN ./p4studio/p4studio profile apply ./p4studio/profiles/testing.yaml
+
+RUN ./p4studio/p4studio profile apply ./p4studio/profiles/testing.yaml

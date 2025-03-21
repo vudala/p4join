@@ -53,10 +53,11 @@ def send_chunk(cfg: Config, lines: list, index: int, chunk_size: int):
   start_i = index * chunk_size
   end_i = start_i + chunk_size
 
-  iface = ifaces[index]
+  iface = ifaces[len(lines) % index]
   ether_frame = Ether(dst=cfg.destiny)
   
-  print(f"Thread {index} sending {chunk_size} packets on iface {iface}")
+  pkts = []
+
   for l in lines[start_i:end_i]:
     payload = build_pkt(cfg.data_type, l)
 
@@ -70,8 +71,11 @@ def send_chunk(cfg: Config, lines: list, index: int, chunk_size: int):
     )
 
     pkt = ether_frame / join_ctl / payload
-    sendp(pkt, iface = iface, verbose=False)
+    pkts.append(pkt)
 
+  print(f"Thread {index} sending {len(pkts)} packets on iface {iface}")
+  # Cant increase pps because tofino2 will start dropping some pkts
+  sendpfast(pkts, pps=3000, iface = iface)
   print(f"Thread {index} done")
 
 

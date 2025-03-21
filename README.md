@@ -18,9 +18,9 @@ possibly setup the environment.
 ## Installation 
 ```bash
 git clone git@github.com:vudala/p4join.git --recursive
-cd p4join
 
-pip install -r requirements.txt
+cd p4join
+./setup.sh
 ```
 
 ## Simulation setup
@@ -45,7 +45,7 @@ cd ~/bf-sde-9.9.0/install/bin/
 sudo ./veth_setup.sh
 ```
 
-The number of veths is confirgurable, but the default is 64.
+The number of veths is configurable, but the default is 64.
 
 ### Step 2 - Compile the P4 program
 

@@ -5,7 +5,7 @@ from scapy.all import *
 from scapy.layers.l2 import Ether
 
 ETHER_JOINCTL_TYPE = 0x8200
-ETHER_CLOSE = 0x8299
+ETHER_BENCHMARK = 0x8201
 
 
 class JoinControl(Packet):
@@ -17,6 +17,26 @@ class JoinControl(Packet):
         BitField('probe_key', 0xFFFFFFFF, 32),
         BitField('hash_key', 0xFFFF, 16),
         BitField('found', 0xFFFFFFFF, 32),
+    ]
+
+
+class Timestamps(Packet):
+    name = 'Timestamps'
+    fields_desc = [
+        BitField('t0', 0x00, 48),
+        BitField('t1', 0x00, 48),
+        BitField('t2', 0x00, 48),
+        BitField('t3', 0x00, 48),
+        BitField('t4', 0x00, 48),
+        BitField('t5', 0x00, 48),
+    ]
+
+
+class Benchmark(Packet):
+    name = 'Benchmark'
+    fields_desc = [
+        PacketField("timestamps", Timestamps(), Timestamps),
+        PacketField("joinctl", JoinControl(), JoinControl),
     ]
 
 
@@ -105,6 +125,7 @@ class Date(Packet):
 
 
 bind_layers(Ether, JoinControl, type=ETHER_JOINCTL_TYPE)
+bind_layers(Ether, Benchmark, type=ETHER_BENCHMARK)
 
 bind_layers(JoinControl, Lineorder, table_t=TableType.LINEORDER.value)
 bind_layers(JoinControl, Customer, table_t=TableType.CUSTOMER.value)

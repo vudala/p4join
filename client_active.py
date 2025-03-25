@@ -1,12 +1,14 @@
-from scapy.all import *
-from scapy.layers.l2 import Ether
-from tables import *
+# Native
 from datetime import datetime
 
+# 3rd party
+from scapy.all import *
+from scapy.layers.l2 import Ether
+
+# Local
+from pkt.types import *
+
 interface = 'veth24'
-
-bind_layers(Ether, JoinControl, type=ETHER_JOINCTL_TYPE)
-
 
 def stop_condition(packet):
   if JoinControl in packet:

@@ -1,11 +1,14 @@
-from scapy.all import *
-from scapy.layers.l2 import Ether
-from tables import *
+# Native
 from datetime import datetime
 
-interface = 'veth24'
+# 3rd party
+from scapy.all import *
+from scapy.layers.l2 import Ether
 
-bind_layers(Ether, JoinControl, type=ETHER_JOINCTL_TYPE)
+# Local
+from pkt.types import *
+
+interface = 'veth24'
 
 hash_table = {}
 result = []

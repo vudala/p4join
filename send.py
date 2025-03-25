@@ -9,8 +9,8 @@ from scapy.all import *
 from scapy.layers.l2 import Ether
 
 # Local
-from tables import *
-from pktbuilder import build_pkt
+from pkt.types import *
+from pkt.builder import build_pkt
 
 # Iface available to be used
 ifaces = [

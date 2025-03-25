@@ -1,10 +1,9 @@
 from scapy.all import *
 from scapy.layers.l2 import Ether
-from tables import *
+from pkt.types import *
 
 interface = 'veth24'
 
-bind_layers(Ether, JoinControl, type=ETHER_JOINCTL_TYPE)
 class Test(Packet):
     name = 'Test'
     fields_desc = [

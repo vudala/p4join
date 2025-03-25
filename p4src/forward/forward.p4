@@ -49,6 +49,15 @@ control SwitchIngress(
 
     apply {
         forward.apply();
+        /*
+        Ingress IEEE 1588 timestamp (in nsec) taken at the ingress MAC.
+        
+        ingress_intrinsic_metadata_t ig_intr_md; bit<48> ingress_mac_tstamp;
+
+        Global timestamp (ns) taken upon arrival at ingress.
+
+        ingress_intrinsic_metadata_from_parser_t ig_prsr_md; bit<48> global_tstamp;
+        */
     }
 }
 
@@ -64,7 +73,14 @@ control SwitchEgress(
     inout egress_intrinsic_metadata_for_deparser_t      eg_dprsr_md,
     inout egress_intrinsic_metadata_for_output_port_t   eg_oport_md)
 {
-    apply {}
+    apply {
+        /*
+        Global timestamp (ns) taken upon arrival at egress.
+        
+        egress_intrinsic_metadata_from_parser_t eg_prsr_md;
+        bit<48> global_tstamp;
+        */
+    }
 }
 
 

@@ -15,8 +15,9 @@ bind_layers(Ether, Test, type=0x8234)
 count = 0
 
 # Define a callback function to process each sniffed packet
-def process_packet(packet):
-    packet.show()
+def process_packet(pkt):
+    pkt.show()
+
     global count
     count += 1
     print(count)

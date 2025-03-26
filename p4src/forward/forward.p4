@@ -52,6 +52,8 @@ control SwitchIngress(
 
         hdr.ethernet.ether_type = ETHERTYPE_BENCHMARK;
 
+        hdr.timestamps.setValid();
+
         hdr.timestamps.t2 = 0;
         hdr.timestamps.t3 = 0;
         hdr.timestamps.t4 = 0;

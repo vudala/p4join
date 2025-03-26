@@ -12,11 +12,11 @@ class JoinControl(Packet):
     name = 'JoinControl'
     fields_desc = [
         BitField('table_t', 0x00, 8),
-        BitField('stage', 0xFFFFFFFF, 8),
-        BitField('build_key', 0xFFFFFFFF, 32),
-        BitField('probe_key', 0xFFFFFFFF, 32),
+        BitField('stage', 0x00, 8),
+        BitField('build_key', 0x00, 32),
+        BitField('probe_key', 0x00, 32),
         BitField('hash_key', 0xFFFF, 16),
-        BitField('found', 0xFFFFFFFF, 32),
+        BitField('found', 0x00, 32),
     ]
 
 
@@ -35,8 +35,19 @@ class Timestamps(Packet):
 class Benchmark(Packet):
     name = 'Benchmark'
     fields_desc = [
-        PacketField("timestamps", Timestamps(), Timestamps),
-        PacketField("joinctl", JoinControl(), JoinControl),
+        BitField('t0', 0x00, 48),
+        BitField('t1', 0x00, 48),
+        BitField('t2', 0x00, 48),
+        BitField('t3', 0x00, 48),
+        BitField('t4', 0x00, 48),
+        BitField('t5', 0x00, 48),
+
+        BitField('table_t', 0x00, 8),
+        BitField('stage', 0x00, 8),
+        BitField('build_key', 0x00, 32),
+        BitField('probe_key', 0x00, 32),
+        BitField('hash_key', 0xFFFF, 16),
+        BitField('found', 0x00, 32),
     ]
 
 
@@ -131,3 +142,8 @@ bind_layers(JoinControl, Lineorder, table_t=TableType.LINEORDER.value)
 bind_layers(JoinControl, Customer, table_t=TableType.CUSTOMER.value)
 bind_layers(JoinControl, Supplier, table_t=TableType.SUPPLIER.value)
 bind_layers(JoinControl, Date, table_t=TableType.DATE.value)
+
+bind_layers(Benchmark, Lineorder, table_t=TableType.LINEORDER.value)
+bind_layers(Benchmark, Customer, table_t=TableType.CUSTOMER.value)
+bind_layers(Benchmark, Supplier, table_t=TableType.SUPPLIER.value)
+bind_layers(Benchmark, Date, table_t=TableType.DATE.value)

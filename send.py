@@ -53,7 +53,7 @@ def send_chunk(cfg: Config, lines: list, index: int, chunk_size: int):
   start_i = index * chunk_size
   end_i = start_i + chunk_size
 
-  iface = ifaces[len(lines) % index]
+  iface = ifaces[len(lines) % (index + 1)]
   ether_frame = Ether(dst=cfg.destiny)
   
   pkts = []
@@ -61,7 +61,7 @@ def send_chunk(cfg: Config, lines: list, index: int, chunk_size: int):
   for l in lines[start_i:end_i]:
     payload = build_pkt(cfg.data_type, l)
 
-    join_ctl = JoinControl(
+    join_control = JoinControl(
       table_t = cfg.data_type.value,
       stage = cfg.stage,
       build_key = payload.fields.get(cfg.build_key),
@@ -70,7 +70,7 @@ def send_chunk(cfg: Config, lines: list, index: int, chunk_size: int):
       found = 0x00,
     )
 
-    pkt = ether_frame / join_ctl / payload
+    pkt = ether_frame / join_control / payload
     pkts.append(pkt)
 
   print(f"Thread {index} sending {len(pkts)} packets on iface {iface}")

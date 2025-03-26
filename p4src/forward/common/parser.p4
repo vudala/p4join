@@ -71,7 +71,8 @@ control SwitchIngressDeparser(packet_out pkt,
     in ingress_intrinsic_metadata_for_deparser_t ig_dprsr_md)
 {
     apply {
-        pkt.emit(hdr);
+        pkt.emit(hdr.ethernet);
+        pkt.emit(hdr.timestamps);
     }
 }
 
@@ -96,8 +97,10 @@ parser SwitchEgressParser(packet_in pkt,
 
     state parse_ethernet {
         pkt.extract(hdr.ethernet);
+        pkt.extract(hdr.timestamps);
         transition accept;
     }
+
 }
 
 // ---------------------------------------------------------------------------

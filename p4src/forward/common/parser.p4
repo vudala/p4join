@@ -51,6 +51,9 @@ parser SwitchIngressParser(packet_in pkt,
 
     state start {
         tofino_parser.apply(pkt, ig_intr_md);
+
+        hdr.timestamps.t0 = ig_intr_md.ingress_mac_tstamp;
+
         transition parse_ethernet;
     }
 

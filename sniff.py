@@ -4,14 +4,6 @@ from pkt.types import *
 
 interface = 'veth24'
 
-class Test(Packet):
-    name = 'Test'
-    fields_desc = [
-        IntField('index', -1)
-    ]
-
-bind_layers(Ether, Test, type=0x8234)
-
 count = 0
 
 # Define a callback function to process each sniffed packet

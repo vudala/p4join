@@ -37,6 +37,7 @@ RUN ./p4studio/p4studio profile apply ./p4studio/profiles/testing.yaml
 
 # Setup SDE
 RUN ./create-setup-script.sh > ~/setup-open-p4studio.bash
+WORKDIR /home/$USERNAME
 RUN echo source ~/setup-open-p4studio.bash >> .bashrc
 
 ENTRYPOINT ["tail", "-f", "/dev/null", ">", "/dev/null"]

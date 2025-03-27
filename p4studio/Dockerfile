@@ -16,11 +16,12 @@ RUN apt-get install -y \
 
 # Add user dev group dev
 ARG USERNAME=dev
+ARG USERPASS=p4
 ARG USER_UID=1001
 ARG USER_GID=1001
 
 RUN groupadd --gid $USER_GID $USERNAME
-RUN useradd --uid $USER_UID --gid $USER_GID --create-home $USERNAME
+RUN useradd --uid $USER_UID --gid $USER_GID --create-home --password $USERPASS $USERNAME 
     
 # Add the user to the sudo group without requiring a password
 RUN echo "$USERNAME ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers

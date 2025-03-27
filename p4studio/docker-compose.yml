@@ -10,6 +10,9 @@ services:
 
     entrypoint: tail -f /dev/null > /dev/null
 
+    ports: 
+      - 2222:22
+
     networks:
       - p4net
 networks:

@@ -40,4 +40,13 @@ RUN ./create-setup-script.sh > ~/setup-open-p4studio.bash
 WORKDIR /home/$USERNAME
 RUN echo source ~/setup-open-p4studio.bash >> .bashrc
 
-ENTRYPOINT ["tail", "-f", "/dev/null", ">", "/dev/null"]
+# Setup ssh service
+RUN apt-get install -y \
+        openssh-server
+
+# Setup entrypoint
+COPY entrypoint.sh /home/entrypoint.sh
+WORKDIR /home
+RUN chmod +x ./entrypoint.sh
+
+ENTRYPOINT ["/bin/sh", "-c" , "./entrypoint.sh"]

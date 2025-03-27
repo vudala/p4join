@@ -3,7 +3,7 @@ services:
     build: .
     image: p4studio:1
 
-    container-name: p4studio
+    container_name: p4studio
     hostname: p4studio
 
     privileged: true

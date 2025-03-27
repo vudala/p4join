@@ -34,3 +34,9 @@ WORKDIR /home/$USERNAME/open-p4studio
 RUN git submodule update --init --recursive
 
 RUN ./p4studio/p4studio profile apply ./p4studio/profiles/testing.yaml
+
+# Setup SDE
+RUN ./create-setup-script.sh > ~/setup-open-p4studio.bash
+RUN echo source ~/setup-open-p4studio.bash >> .bashrc
+
+ENTRYPOINT ["tail", "-f", "/dev/null", ">", "/dev/null"]

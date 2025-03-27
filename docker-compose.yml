@@ -1,0 +1,16 @@
+services:
+  p4studio:
+    build: .
+    image: p4studio:1
+
+    container-name: p4studio
+    hostname: p4studio
+
+    privileged: true
+
+    entrypoint: tail -f /dev/null > /dev/null
+
+    networks:
+      - p4net
+networks:
+  p4net:

@@ -42,7 +42,7 @@ WORKDIR /home/$USERNAME
 RUN echo source ~/setup-open-p4studio.bash >> .bashrc
 
 # Setup ssh service
-RUN apt-get install -y \
+RUN sudo apt-get install -y \
         openssh-server
 
 # Setup entrypoint

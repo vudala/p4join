@@ -47,6 +47,6 @@ RUN sudo apt-get install -y \
 
 # Setup entrypoint
 COPY entrypoint.sh entrypoint.sh
-RUN chmod +x ./entrypoint.sh
+RUN sudo chmod +x entrypoint.sh
 
 ENTRYPOINT ["/bin/sh", "-c" , "./entrypoint.sh"]

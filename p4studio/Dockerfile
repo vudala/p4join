@@ -46,7 +46,7 @@ RUN sudo apt-get install -y \
         openssh-server
 
 # Setup entrypoint
-COPY entrypoint.sh /home/entrypoint.sh
+COPY entrypoint.sh entrypoint.sh
 RUN chmod +x ./entrypoint.sh
 
 ENTRYPOINT ["/bin/sh", "-c" , "./entrypoint.sh"]

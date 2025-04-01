@@ -44,7 +44,9 @@ RUN echo source ~/setup-open-p4studio.bash >> .bashrc
 
 # Setup ssh service
 RUN sudo apt-get install -y \
-        openssh-server
+        openssh-server \
+        tmux \
+        vim
 
 # Setup entrypoint
 COPY entrypoint.sh entrypoint.sh

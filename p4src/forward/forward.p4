@@ -80,8 +80,13 @@ control SwitchEgress(
     inout egress_intrinsic_metadata_for_output_port_t   eg_oport_md)
 {
     apply {
+        // Time snapshot taken when the packetis enqueued (in nsec).
+        hdr.timestamps.t2 = eg_intr_md.enq_tstamp;
+        // Time delta between the packet's enqueue and dequeue time.
+        hdr.timestamps.t3 = eg_intr_md.enq_tstamp + eg_intr_md.deq_timedelta;
+
         /* Global timestamp (ns) taken upon arrival at egress. */
-        hdr.timestamps.t2 = eg_prsr_md.global_tstamp;
+        hdr.timestamps.t4 = eg_prsr_md.global_tstamp;
     }
 }
 

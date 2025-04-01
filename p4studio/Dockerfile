@@ -14,14 +14,15 @@ RUN apt-get install -y \
         sudo \
         python3
 
-# Add user dev group dev
+# Add user dev
 ARG USERNAME=dev
 ARG USERPASS=p4
 ARG USER_UID=1001
 ARG USER_GID=1001
 
 RUN groupadd --gid $USER_GID $USERNAME
-RUN useradd --uid $USER_UID --gid $USER_GID --create-home --password $USERPASS $USERNAME 
+RUN useradd --uid $USER_UID --gid $USER_GID --create-home $USERNAME -s /bin/bash
+RUN echo $USERNAME:$USERPASS | sudo chpasswd -c SHA512
     
 # Add the user to the sudo group without requiring a password
 RUN echo "$USERNAME ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers

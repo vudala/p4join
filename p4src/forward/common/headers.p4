@@ -26,8 +26,8 @@ header ethernet_h {
 header timestamps_h {
     bit<48> t0;
     bit<48> t1;
-    bit<48> t2;
-    bit<48> t3;
+    bit<32> t2;
+    bit<32> t3;
     bit<48> t4;
     bit<48> t5;
 }

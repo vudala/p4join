@@ -219,9 +219,22 @@ control SwitchIngress(
 
     apply {
         forward.apply();
+        join1.apply(hdr.join_control, ig_dprsr_md.drop_ctl);
 
-        if (hdr.join_control.isValid())
-            join1.apply(hdr.join_control, ig_dprsr_md.drop_ctl);
+        // Set timestamps header
+        hdr.ethernet.ether_type = ETHERTYPE_BENCHMARK;
+        hdr.timestamps.setValid();
+        
+        /* Ingress IEEE 1588 timestamp (in nsec) taken at the ingress MAC. */
+        hdr.timestamps.t0 = ig_intr_md.ingress_mac_tstamp;
+
+        /* Global timestamp (ns) taken upon arrival at ingress. */
+        hdr.timestamps.t1 = ig_prsr_md.global_tstamp;
+
+        hdr.timestamps.t2 = 0;
+        hdr.timestamps.t3 = 0;
+        hdr.timestamps.t4 = 0;
+        hdr.timestamps.t5 = 0;
     }
 }
 
@@ -240,8 +253,16 @@ control SwitchEgress(
     Join(TABLE_SIZE) join2;
     
     apply {
-        if (hdr.join_control.isValid())
-            join2.apply(hdr.join_control, eg_dprsr_md.drop_ctl);
+        join2.apply(hdr.join_control, eg_dprsr_md.drop_ctl);
+
+        // Time snapshot taken when the packet is enqueued (in nsec).
+        hdr.timestamps.t2 = eg_intr_md.enq_tstamp;
+
+        // Time delta between the packet's enqueue and dequeue time.
+        hdr.timestamps.t3 = eg_intr_md.enq_tstamp + eg_intr_md.deq_timedelta;
+
+        /* Global timestamp (ns) taken upon arrival at egress. */
+        hdr.timestamps.t4 = eg_prsr_md.global_tstamp;
     }
 }
 

@@ -53,17 +53,17 @@ control SwitchIngress(
         hdr.ethernet.ether_type = ETHERTYPE_BENCHMARK;
 
         hdr.timestamps.setValid();
-
-        hdr.timestamps.t2 = 0;
-        hdr.timestamps.t3 = 0;
-        hdr.timestamps.t4 = 0;
-        hdr.timestamps.t5 = 0;
         
         /* Ingress IEEE 1588 timestamp (in nsec) taken at the ingress MAC. */
         hdr.timestamps.t0 = ig_intr_md.ingress_mac_tstamp;
 
         /* Global timestamp (ns) taken upon arrival at ingress. */
         hdr.timestamps.t1 = ig_prsr_md.global_tstamp;
+
+        hdr.timestamps.t2 = 0;
+        hdr.timestamps.t3 = 0;
+        hdr.timestamps.t4 = 0;
+        hdr.timestamps.t5 = 0;
     }
 }
 
@@ -82,6 +82,7 @@ control SwitchEgress(
     apply {
         // Time snapshot taken when the packetis enqueued (in nsec).
         hdr.timestamps.t2 = eg_intr_md.enq_tstamp;
+
         // Time delta between the packet's enqueue and dequeue time.
         hdr.timestamps.t3 = eg_intr_md.enq_tstamp + eg_intr_md.deq_timedelta;
 

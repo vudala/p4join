@@ -51,9 +51,6 @@ parser SwitchIngressParser(packet_in pkt,
 
     state start {
         tofino_parser.apply(pkt, ig_intr_md);
-
-        hdr.timestamps.t0 = ig_intr_md.ingress_mac_tstamp;
-
         transition parse_ethernet;
     }
 
@@ -100,10 +97,16 @@ parser SwitchEgressParser(packet_in pkt,
 
     state parse_ethernet {
         pkt.extract(hdr.ethernet);
+        transition select(hdr.ethernet.ether_type) {
+            ETHERTYPE_BENCHMARK: parse_benchmark;
+            // no default = DROP
+        }
+    }
+
+    state parse_benchmark {
         pkt.extract(hdr.timestamps);
         transition accept;
     }
-
 }
 
 // ---------------------------------------------------------------------------

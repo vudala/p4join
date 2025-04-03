@@ -26,8 +26,8 @@ class Timestamps(Packet):
     fields_desc = [
         BitField('t0', 0x00, 48),
         BitField('t1', 0x00, 48),
-        BitField('t2', 0x00, 48),
-        BitField('t3', 0x00, 48),
+        BitField('t2', 0x00, 32),
+        BitField('t3', 0x00, 32),
         BitField('t4', 0x00, 48),
         BitField('t5', 0x00, 48),
     ]
@@ -144,5 +144,5 @@ bind_layers(JoinControl, Customer, table_t=TableType.CUSTOMER.value)
 bind_layers(JoinControl, Supplier, table_t=TableType.SUPPLIER.value)
 bind_layers(JoinControl, Date, table_t=TableType.DATE.value)
 
-# To let scapy know timestamps doesnt transport another layer
+# To let scapy know timestamps doesnt transport payload
 bind_layers(Timestamps, Padding)

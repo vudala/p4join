@@ -51,27 +51,29 @@ control Join(
 
     /************************ hash tables ************/
 
-    #define CREATE_HASH_TABLE(N)                                               \
-    Register<bit<32>, bit<HASH_SIZE>>(table_size)  hash_table_##N;             \
-                                                                               \
-    RegisterAction<bit<32>, bit<HASH_SIZE>, bit<32>>(hash_table_##N)           \
-        build_##N = {                                                          \
-            void apply(inout bit<32> register_data, out bit<32> found){        \
-                found = 0;                                                     \
-                if(register_data == 0){                                        \
-                    register_data = join_control.build_key;                    \
-                    /* any data so it doesnt trigger build on next table */    \
-                    found = 1;                                                 \
-                }                                                              \
-            }                                                                  \
-    };                                                                         \
-                                                                               \
-    RegisterAction<bit<32>, bit<HASH_SIZE>, bit<32>>(hash_table_##N)           \
-        probe_##N = {                                                          \
-            void apply(inout bit<32> register_data, out bit<32> result){       \
-                result = register_data;                                        \
-            }                                                                  \
-    };                                                                         \
+    #define CREATE_HASH_TABLE(N)                                                    \
+    Register<bit<KEY_SIZE>, bit<HASH_SIZE>>(table_size)  hash_table_##N;            \
+                                                                                    \
+    RegisterAction<bit<KEY_SIZE>, bit<HASH_SIZE>, bit<KEY_SIZE>>(hash_table_##N)    \
+        build_##N = {                                                               \
+            void apply(inout bit<KEY_SIZE> register_data, out bit<KEY_SIZE> found){ \
+                found = 0;                                                          \
+                if(register_data == 0){                                             \
+                    register_data = join_control.build_key;                         \
+                    /* any data so it doesnt trigger build on next table */         \
+                    found = 1;                                                      \
+                }                                                                   \
+            }                                                                       \
+    };                                                                              \
+                                                                                    \
+    RegisterAction<bit<KEY_SIZE>, bit<HASH_SIZE>, bit<KEY_SIZE>>(hash_table_##N)    \
+        probe_##N = {                                                               \
+            void apply(                                                             \    
+                inout bit<KEY_SIZE> register_data,                                  \            
+                out bit<KEY_SIZE> result) {                                         \
+                result = register_data;                                             \
+            }                                                                       \
+    };                                                                              \
 
     CREATE_HASH_TABLE(1)
     CREATE_HASH_TABLE(2)
@@ -126,34 +128,20 @@ control Join(
                 CREATE_JOIN_LOGIC(15)
 
                 /* Packet used during build, wont be forwarded */
-                if(join_control.stage == 1){
-                    tb_drop.apply();
-                }
-                /* 
-                If probed index doesnt contain same data: drop
-
-                The stage == 3 check exists to prevent the last table that probes
-                the registers, during the ingress stage, from getting dropped
-                */
-                else
-                if (join_control.found != join_control.probe_key
-                    && join_control.stage == 3){
+                if(join_control.stage == 1) {
                     tb_drop.apply();
                 }
 
-                // Reset probe flag
+                if (join_control.stage == 3) {
+                    if (join_control.found != join_control.probe_key[join_control.curr_pipeline]) {
+                        tb_drop.apply();
+                    }
+                }
+
                 join_control.found = 0;
 
-                /* If packet has reached this point, it means it has probed
-                successfully */
-                
-                /*
-                Decrease stage by 1 if stage == 2
-                If not, it means this is a DONE or PROBE type packet
-                */
-                if (join_control.stage == 2)
-                    join_control.stage = join_control.stage - 1;
-
+                if (join_control.stage != 3)
+                    join_control.stage--;
             } // @atomic hint
         } // Packet validation
     } // Apply
@@ -199,8 +187,9 @@ control SwitchIngress(
     apply {
         forward.apply();
 
-        if (hdr.join_control.isValid())
-            join1.apply(hdr.join_control, ig_dprsr_md.drop_ctl);
+        hdr.join_control.pipeline = 0;
+
+        join1.apply(hdr.join_control, ig_dprsr_md.drop_ctl);
     }
 }
 
@@ -219,8 +208,9 @@ control SwitchEgress(
     Join(TABLE_SIZE) join2;
     
     apply {
-        if (hdr.join_control.isValid())
-            join2.apply(hdr.join_control, eg_dprsr_md.drop_ctl);
+        hdr.join_control.pipeline = 1;
+
+        join2.apply(hdr.join_control, eg_dprsr_md.drop_ctl);
     }
 }
 

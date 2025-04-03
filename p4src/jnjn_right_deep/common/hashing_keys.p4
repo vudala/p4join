@@ -30,7 +30,9 @@ control join_hash(
             sel_hash = build_hash.get(join_control.build_key);
         }
         else {
-            sel_hash = probe_hash.get(join_control.probe_key);
+            sel_hash = probe_hash.get(
+                join_control.probe_key[join_control.curr_pipeline]
+            );
         }
     }
 }

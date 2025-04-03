@@ -30,10 +30,34 @@ class Config():
   data_type = None
   stage = None
   build_key = None
-  probe_key = None
+  probe_keys = None
   destiny = None
   threads = None
   
+
+# Convert data into byterray
+def to_bytes(data: any):
+  ret = None
+  side = None
+  if type(data) == int:
+    ret = data.to_bytes(length=4, byteorder='big')
+    side = 'left'
+  elif type(data) == str:
+    ret = data.encode('ascii')
+  elif type(data) == bytes:
+    ret = data
+
+  if ret:
+    # If needed, pad the array up to fill the field
+    clen = len(ret)
+    if clen >= KEY_SIZE:
+      return ret
+    
+    if side == 'left':
+      return b'\x00' * (KEY_SIZE - clen) + ret
+
+    return ret
+
 
 def send_chunk(cfg: Config, lines: list, index: int, chunk_size: int):
   """
@@ -61,17 +85,19 @@ def send_chunk(cfg: Config, lines: list, index: int, chunk_size: int):
   for l in lines[start_i:end_i]:
     payload = build_pkt(cfg.data_type, l)
 
-    join_control = JoinControlLeftDeep(
+    join_control = JoinControlRightDeep(
       table_t = cfg.data_type.value,
       stage = cfg.stage,
       build_key = payload.fields.get(cfg.build_key),
-      probe_key = payload.fields.get(cfg.probe_key),
+      probe1_key = to_bytes(payload.fields.get(cfg.probe_keys[0])),
+      probe2_key = to_bytes(payload.fields.get(cfg.probe_keys[1])),
       hash_key = 0x00,
       found = 0x00,
     )
 
     pkt = ether_frame / join_control / payload
     pkts.append(pkt)
+    pkt.show()
 
   print(f"Thread {index} sending {len(pkts)} packets on iface {iface}")
   # Cant increase pps because tofino2 will start dropping some pkts
@@ -90,11 +116,11 @@ def send_close(cfg: Config):
   """
   ether_frame = Ether(dst=cfg.destiny)
 
-  join_ctl = JoinControlLeftDeep(
+  join_ctl = JoinControlRightDeep(
       table_t = 0x00,
       stage = 0x00,
       build_key = 0x00,
-      probe_key = 0x00,
+      probe_keys = [],
       hash_key = 0x00,
       found = 0x00,
     )
@@ -189,7 +215,7 @@ def get_args():
   # t_group.add_argument("-d", nargs=1, type=str, help="Use table type date")
   # t_group.add_argument("-p", action="store_true", help="Use table type part")
 
-  parser.add_argument("--stage", type=int,
+  parser.add_argument("--stage", type=int, required=True,
                          help="Which stage to send")
 
   # Number of threads to use
@@ -203,7 +229,7 @@ def get_args():
     "-bk", "--build-key", type=str, required=True, help="Key to be used on build"
   )
   parser.add_argument(
-    "-pk", "--probe-key", type=str, required=True, help="Key to be used on probe"
+    "-pks", "--probe-keys", nargs=2, required=True, help="Keys to be used on probe"
   )
 
   # Destiny field
@@ -241,7 +267,7 @@ if __name__ == "__main__":
   cfg.stage = args.stage
   cfg.file = file
   cfg.build_key = args.build_key
-  cfg.probe_key = args.probe_key
+  cfg.probe_keys = args.probe_keys
   cfg.destiny = args.dst
   cfg.threads = args.threads
 

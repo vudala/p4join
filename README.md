@@ -210,3 +210,25 @@ sudo python3 send.py --stage 3 -s datasets/supplier.csv \
 # Probe 2 done, Query done
 sudo python3 send.py --stage 0 -l null -bk null -pk null
 ```
+
+
+```bash
+# Performs build on Ingress stage
+sudo python3 send.py --stage 1 -c dataset_samples/customers.sample.csv \
+    -bk c_custkey -pk null --threads 4
+
+# Probe during Ingress and build during Egress stage
+sudo python3 send.py --stage 2 -l dataset_samples/lineorder.small.sample.csv \
+    -bk lo_suppkey -pk lo_custkey --threads 4
+
+# Probe during Ingress and Egress stage
+sudo python3 send.py --stage 3 -s dataset_samples/supplier.sample.csv \
+    -bk null -pk s_suppkey --threads 4
+
+# End join
+sudo python3 send.py --stage 0 -l null -bk null -pk null
+```
+
+
+sudo python3 send_rd.py --stage 3 -s dataset_samples/supplier.sample.csv \
+    -bk null -pk s_suppkey s_region

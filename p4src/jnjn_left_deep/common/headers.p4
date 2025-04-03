@@ -43,6 +43,7 @@ header join_control_h {
     bit<8> stage;       // stage (0,1,2,3) (done, build, probe/build, probe)
     bit<32> build_key;  // key to be used on build
     bit<32> probe_key;  // key to be used on probe
+
     bit<16> hash_key;   // ffw store hash crc 16
     bit<32> found;      // ffw pkt found value
 }

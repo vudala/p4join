@@ -62,7 +62,7 @@ parser SwitchIngressParser(packet_in pkt,
         }
     }
 
-     state parse_join_control {
+    state parse_join_control {
         pkt.extract(hdr.join_control);
         transition accept;
     }
@@ -79,7 +79,9 @@ control SwitchIngressDeparser(packet_out pkt,
     in ingress_intrinsic_metadata_for_deparser_t ig_dprsr_md)
 {
     apply {
-        pkt.emit(hdr);
+        pkt.emit(hdr.ethernet);
+        pkt.emit(hdr.timestamps);
+        pkt.emit(hdr.join_control);
     }
 }
 
@@ -105,12 +107,13 @@ parser SwitchEgressParser(packet_in pkt,
     state parse_ethernet {
         pkt.extract(hdr.ethernet);
         transition select(hdr.ethernet.ether_type) {
-            ETHERTYPE_JOIN_CONTROL: parse_join_control;
+            ETHERTYPE_BENCHMARK: parse_benchmark;
             // no default = DROP
         }
     }
 
-    state parse_join_control {
+    state parse_benchmark {
+        pkt.extract(hdr.timestamps);
         pkt.extract(hdr.join_control);
         transition accept;
     }
@@ -127,7 +130,9 @@ control SwitchEgressDeparser(packet_out pkt,
     in egress_intrinsic_metadata_for_deparser_t eg_dprsr_md)
 {
     apply {
-        pkt.emit(hdr);
+        pkt.emit(hdr.ethernet);
+        pkt.emit(hdr.timestamps);
+        pkt.emit(hdr.join_control);
     }
 }
 

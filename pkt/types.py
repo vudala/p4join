@@ -4,18 +4,37 @@ from enum import Enum
 from scapy.all import *
 from scapy.layers.l2 import Ether
 
-ETHER_JOINCTL_TYPE = 0x8200
+ETHER_JOINCTL_LD = 0x8200
+ETHER_JOINCTL_RD = 0x8202
 ETHER_BENCHMARK = 0x8201
 ETHER_TEST = 0x8234
 
+KEY_SIZE = 8
 
-class JoinControl(Packet):
+
+class JoinControlLeftDeep(Packet):
     name = 'JoinControl'
     fields_desc = [
         BitField('table_t', 0x00, 8),
         BitField('stage', 0x00, 8),
         BitField('build_key', 0x00, 32),
         BitField('probe_key', 0x00, 32),
+        BitField('hash_key', 0xFFFF, 16),
+        BitField('found', 0x00, 32),
+    ]
+
+
+class JoinControlRightDeep(Packet):
+    name = 'JoinControl'
+    fields_desc = [
+        BitField('table_t', 0x00, 8),
+        BitField('stage', 0x00, 8),
+        # BitField('build_key', 0x00, 32),
+        # BitField('probe1_key', 0x00, 32),
+        # BitField('probe2_key', 0x00, 32),
+        StrFixedLenField('build_key', None, KEY_SIZE),
+        StrFixedLenField('probe1_key', None, KEY_SIZE),
+        StrFixedLenField('probe2_key', None, KEY_SIZE),
         BitField('hash_key', 0xFFFF, 16),
         BitField('found', 0x00, 32),
     ]
@@ -33,13 +52,20 @@ class Timestamps(Packet):
     ]
 
 
-class Benchmark(Packet):
+class BenchmarkLD(Packet):
     name = 'Benchmark'
     fields_desc = [
         PacketField("timestamps", Timestamps(), Timestamps),
-        PacketField("join_control", JoinControl(), JoinControl)
+        PacketField("join_control", JoinControlLeftDeep(), JoinControlLeftDeep)
     ]
 
+
+class BenchmarkRD(Packet):
+    name = 'Benchmark'
+    fields_desc = [
+        PacketField("timestamps", Timestamps(), Timestamps),
+        PacketField("join_control", JoinControlRightDeep(), JoinControlRightDeep)
+    ]
 
 class TableType(Enum):
     LINEORDER = 1
@@ -135,14 +161,21 @@ bind_layers(Ether, Test, type=ETHER_TEST)
 
 
 # Ether binds
-bind_layers(Ether, JoinControl, type=ETHER_JOINCTL_TYPE)
-bind_layers(Ether, Benchmark, type=ETHER_BENCHMARK)
+bind_layers(Ether, JoinControlLeftDeep, type=ETHER_JOINCTL_LD)
+bind_layers(Ether, JoinControlRightDeep, type=ETHER_JOINCTL_RD)
+bind_layers(Ether, BenchmarkLD, type=ETHER_BENCHMARK)
+bind_layers(Ether, BenchmarkRD, type=ETHER_BENCHMARK)
 
 # JoinControl binds
-bind_layers(JoinControl, Lineorder, table_t=TableType.LINEORDER.value)
-bind_layers(JoinControl, Customer, table_t=TableType.CUSTOMER.value)
-bind_layers(JoinControl, Supplier, table_t=TableType.SUPPLIER.value)
-bind_layers(JoinControl, Date, table_t=TableType.DATE.value)
+bind_layers(JoinControlLeftDeep, Lineorder, table_t=TableType.LINEORDER.value)
+bind_layers(JoinControlLeftDeep, Customer, table_t=TableType.CUSTOMER.value)
+bind_layers(JoinControlLeftDeep, Supplier, table_t=TableType.SUPPLIER.value)
+bind_layers(JoinControlLeftDeep, Date, table_t=TableType.DATE.value)
+
+bind_layers(JoinControlRightDeep, Lineorder, table_t=TableType.LINEORDER.value)
+bind_layers(JoinControlRightDeep, Customer, table_t=TableType.CUSTOMER.value)
+bind_layers(JoinControlRightDeep, Supplier, table_t=TableType.SUPPLIER.value)
+bind_layers(JoinControlRightDeep, Date, table_t=TableType.DATE.value)
 
 # To let scapy know timestamps doesnt transport payload
 bind_layers(Timestamps, Padding)

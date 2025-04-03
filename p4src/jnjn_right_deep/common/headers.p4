@@ -16,6 +16,7 @@ typedef bit<48> mac_addr_t;
 typedef bit<16> ether_type_t;
 
 const ether_type_t ETHERTYPE_JOIN_CONTROL = 0x8200;
+const ether_type_t ETHERTYPE_BENCHMARK = 0x8201;
 
 header ethernet_h {
     mac_addr_t dst_addr;
@@ -36,20 +37,35 @@ typedef bit<16> uint16;
 typedef bit<32> uint32;
 typedef bit<64> uint64;
 
+/* Size of the build/probe keys, consequently this is the size of the entries
+in the hash tables */
+#define KEY_SIZE 64
+
 
 header join_control_h {
-    bit<8> table_id;    // which table it refers to
-    bit<8> stage;       // stage (0,1,2,3) (done, build 1, build 2, probe)
-    bit<8> curr_stage;  // current stage in the pipeline (0 ingress, 1 egress)
-    bit<32> build_key;  // key to be used on build
-    bit<32> probe_key1; // key to be used on probe 1
-    bit<32> probe_key2; // key to be used on probe 2
-    bit<16> hash_key;   // ffw store hash crc 16
-    bit<32> found;      // ffw pkt found value
+    bit<8> table_id;            // which table it refers to
+    bit<8> stage;               // stage (0,1,2,3) (done, build 1, build 2, probe)
+    bit<KEY_SIZE> build_key;    // key to be used on build
+    bit<KEY_SIZE> probe_key[2]; // keys to used on probe
+
+    /* Control */
+    bit<8> pipeline;            // current pipeline (0 ingress, 1 egress)
+    bit<16> hash_key;           // ffw store hash crc 16
+    bit<KEY_SIZE> found;        // ffw pkt found value
+}
+
+header timestamps_h {
+    bit<48> t0;
+    bit<48> t1;
+    bit<32> t2;
+    bit<32> t3;
+    bit<48> t4;
+    bit<48> t5;
 }
 
 struct header_t {
     ethernet_h ethernet;
+    timestamps_h timestamps;
     join_control_h join_control;
 }
 

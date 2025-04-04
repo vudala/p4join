@@ -5,11 +5,14 @@ from scapy.all import *
 from scapy.layers.l2 import Ether
 
 ETHER_JOINCTL_LD = 0x8200
-ETHER_JOINCTL_RD = 0x8202
-ETHER_BENCHMARK = 0x8201
+ETHER_JOINCTL_RD = 0x8201
+
+ETHER_BENCHMARK_LD = 0X8210
+ETHER_BENCHMARK_RD = 0x8211
+
 ETHER_TEST = 0x8234
 
-KEY_SIZE = 8
+KEY_SIZE = 4
 
 
 class JoinControlLeftDeep(Packet):
@@ -163,8 +166,9 @@ bind_layers(Ether, Test, type=ETHER_TEST)
 # Ether binds
 bind_layers(Ether, JoinControlLeftDeep, type=ETHER_JOINCTL_LD)
 bind_layers(Ether, JoinControlRightDeep, type=ETHER_JOINCTL_RD)
-bind_layers(Ether, BenchmarkLD, type=ETHER_BENCHMARK)
-bind_layers(Ether, BenchmarkRD, type=ETHER_BENCHMARK)
+
+bind_layers(Ether, BenchmarkLD, type=ETHER_BENCHMARK_LD)
+bind_layers(Ether, BenchmarkRD, type=ETHER_BENCHMARK_RD)
 
 # JoinControl binds
 bind_layers(JoinControlLeftDeep, Lineorder, table_t=TableType.LINEORDER.value)

@@ -16,7 +16,7 @@ typedef bit<48> mac_addr_t;
 typedef bit<16> ether_type_t;
 
 const ether_type_t ETHERTYPE_JOIN_CONTROL = 0x8200;
-const ether_type_t ETHERTYPE_BENCHMARK = 0x8201;
+const ether_type_t ETHERTYPE_BENCHMARK = 0x8210;
 
 header ethernet_h {
     mac_addr_t dst_addr;

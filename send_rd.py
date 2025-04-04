@@ -88,7 +88,7 @@ def send_chunk(cfg: Config, lines: list, index: int, chunk_size: int):
     join_control = JoinControlRightDeep(
       table_t = cfg.data_type.value,
       stage = cfg.stage,
-      build_key = payload.fields.get(cfg.build_key),
+      build_key = to_bytes(payload.fields.get(cfg.build_key)),
       probe1_key = to_bytes(payload.fields.get(cfg.probe_keys[0])),
       probe2_key = to_bytes(payload.fields.get(cfg.probe_keys[1])),
       hash_key = 0x00,
@@ -108,7 +108,7 @@ def send_chunk(cfg: Config, lines: list, index: int, chunk_size: int):
 def send_close(cfg: Config):
   """
   Sends a stage 0 packet to destiny (close)
-
+CET
   Params
   ------
   - cfg: Config

@@ -15,8 +15,8 @@
 typedef bit<48> mac_addr_t;
 typedef bit<16> ether_type_t;
 
-const ether_type_t ETHERTYPE_JOIN_CONTROL = 0x8200;
-const ether_type_t ETHERTYPE_BENCHMARK = 0x8201;
+const ether_type_t ETHERTYPE_JOIN_CONTROL = 0x8201;
+const ether_type_t ETHERTYPE_BENCHMARK = 0x8211;
 
 header ethernet_h {
     mac_addr_t dst_addr;
@@ -39,17 +39,18 @@ typedef bit<64> uint64;
 
 /* Size of the build/probe keys, consequently this is the size of the entries
 in the hash tables */
-#define KEY_SIZE 64
+#define KEY_SIZE 32
+
 
 
 header join_control_h {
     bit<8> table_id;            // which table it refers to
     bit<8> stage;               // stage (0,1,2,3) (done, build 1, build 2, probe)
     bit<KEY_SIZE> build_key;    // key to be used on build
-    bit<KEY_SIZE> probe_key[2]; // keys to used on probe
+    bit<KEY_SIZE> probe1_key;   // key to used on probe1
+    bit<KEY_SIZE> probe2_key;   // key to used on probe2
 
     /* Control */
-    bit<8> pipeline;            // current pipeline (0 ingress, 1 egress)
     bit<16> hash_key;           // ffw store hash crc 16
     bit<KEY_SIZE> found;        // ffw pkt found value
 }

@@ -15,6 +15,8 @@
 typedef bit<48> mac_addr_t;
 typedef bit<16> ether_type_t;
 
+#define KEY_SIZE 32
+
 const ether_type_t ETHERTYPE_JOIN_CONTROL = 0x8200;
 const ether_type_t ETHERTYPE_BENCHMARK = 0x8210;
 
@@ -24,28 +26,11 @@ header ethernet_h {
     bit<16> ether_type;
 }
 
-/*****************************************/
-/*
-
-ssb description: https://www.cs.umb.edu/~poneil/StarSchemaB.PDF
-
-                                         */
-/*****************************************/
-
-typedef bit<8> char;
-typedef bit<16> uint16;
-typedef bit<32> uint32;
-typedef bit<64> uint64;
-
-
 header join_control_h {
     bit<8> table_id;    // which table it refers to
     bit<8> stage;       // stage (0,1,2,3) (done, build, probe/build, probe)
-    bit<32> build_key;  // key to be used on build
-    bit<32> probe_key;  // key to be used on probe
-
-    bit<16> hash_key;   // ffw store hash crc 16
-    bit<32> found;      // ffw pkt found value
+    bit<KEY_SIZE> build_key;  // key to be used on build
+    bit<KEY_SIZE> probe_key;  // key to be used on probe
 }
 
 header timestamps_h {
@@ -63,6 +48,9 @@ struct header_t {
     join_control_h join_control;
 }
 
-struct metadata_t {}
+struct metadata_t {
+    bit<16> hash_key;       // ffw store hash crc 16
+    bit<KEY_SIZE> found;    // ffw pkt found value
+}
 
 #endif /* _HEADERS_ */

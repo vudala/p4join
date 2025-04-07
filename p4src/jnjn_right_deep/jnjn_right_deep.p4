@@ -24,19 +24,13 @@ https://www.cidrdb.org/cidr2019/papers/p142-lerner-cidr19.pdf
 // ---------------------------------------------------------------------------
 // Join Control
 // ---------------------------------------------------------------------------
-/*
-The overall idea is to use Ingress to absorb build keys from table 1 and
-Egress for the table 2.
 
-*/
 control Join(
     /* User */
     inout join_control_h    join_control,
     inout metadata_t        meta,
     /* Intrinsic */
     inout bit<3>      drop_ctl)
-    /* Number of distinct entries*/
-    (bit<32> table_size)
 {
     Hash<bit<HASH_SIZE>>(HASH_ALG) hasher1;
     Hash<bit<HASH_SIZE>>(HASH_ALG) hasher2;
@@ -58,7 +52,7 @@ control Join(
     /************************ hash tables ************/
 
     #define CREATE_HASH_TABLE(N)                                                        \
-    Register<bit<KEY_SIZE>, bit<HASH_SIZE>>(table_size)  hash_table_##N;                \
+    Register<bit<KEY_SIZE>, bit<HASH_SIZE>>(TABLE_SIZE)  hash_table_##N;                \
                                                                                         \
     RegisterAction<bit<KEY_SIZE>, bit<HASH_SIZE>, bit<KEY_SIZE>>(hash_table_##N)        \
         build_##N = {                                                                   \
@@ -164,12 +158,12 @@ control Join(
                     }
                 }
 
-                if (join_control.stage != 3)
+                if (join_control.stage != 3 && join_control.stage != 0)
                     join_control.stage = join_control.stage - 1;
-            } // @atomic hint
-        } // Packet validation
-    } // Apply
-} // Join control
+            }
+        }
+    }
+}
 
 
 /* ===================================================== Ingress ===================================================== */
@@ -193,7 +187,7 @@ control SwitchIngress(
         ig_dprsr_md.drop_ctl = drop; // drop packet.
     }
 
-    Join(TABLE_SIZE) join1;
+    Join() join1;
 
     table forward {
         key = {
@@ -241,7 +235,7 @@ control SwitchEgress(
     inout egress_intrinsic_metadata_for_deparser_t      eg_dprsr_md,
     inout egress_intrinsic_metadata_for_output_port_t   eg_oport_md)
 {
-    Join(TABLE_SIZE) join2;
+    Join() join2;
     
     apply {
         // Time snapshot taken when the packet is enqueued (in nsec).

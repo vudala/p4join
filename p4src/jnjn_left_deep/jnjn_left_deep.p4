@@ -9,7 +9,21 @@
 
 #include "common/headers.p4"
 #include "common/parser.p4"
-#include "common/hashing_keys.p4"
+
+
+#define TABLE_SIZE 65536
+#define HASH_SIZE 16
+#define HASH_ALG HashAlgorithm_t.CRC16
+
+// enum HashAlgorithm_t {
+//     IDENTITY,
+//     RANDOM,
+//     CRC8,
+//     CRC16,
+//     CRC32,
+//     CRC64,
+//     CUSTOM
+// }
 
 
 /* 
@@ -21,6 +35,7 @@ https://www.cidrdb.org/cidr2019/papers/p142-lerner-cidr19.pdf
 // ---------------------------------------------------------------------------
 // Join Control
 // ---------------------------------------------------------------------------
+
 /*
 The overall idea is to use Ingress to absorb build keys from table 1 and
 Egress for the table 2.
@@ -44,18 +59,17 @@ R: | Stage 3 -> probe -> fwd;  | LB | Stage 2 -> probe -> fwd;  |
 
 Everytime a packet goes through the tables from ingress, the stage is decresead
 by 1.
-
-
 */
+
 control Join(
     /* User */
-    inout join_control_h      join_control,
+    inout join_control_h    join_control,
+    inout metadata_t        meta,
     /* Intrinsic */
     inout bit<3>      drop_ctl)
-    /* Number of distinct entries*/
-    (bit<32> table_size)
 {
-    join_hash() hasher;
+    Hash<bit<HASH_SIZE>>(HASH_ALG) hasher1;
+    Hash<bit<HASH_SIZE>>(HASH_ALG) hasher2;
 
     action drop() {
         drop_ctl = 1;
@@ -72,27 +86,27 @@ control Join(
 
     /************************ hash tables ************/
 
-    #define CREATE_HASH_TABLE(N)                                               \
-    Register<bit<32>, bit<HASH_SIZE>>(table_size)  hash_table_##N;             \
-                                                                               \
-    RegisterAction<bit<32>, bit<HASH_SIZE>, bit<32>>(hash_table_##N)           \
-        build_##N = {                                                          \
-            void apply(inout bit<32> register_data, out bit<32> found){        \
-                found = 0;                                                     \
-                if(register_data == 0){                                        \
-                    register_data = join_control.build_key;                    \
-                    /* any data so it doesnt trigger build on next table */    \
-                    found = 1;                                                 \
-                }                                                              \
-            }                                                                  \
-    };                                                                         \
-                                                                               \
-    RegisterAction<bit<32>, bit<HASH_SIZE>, bit<32>>(hash_table_##N)           \
-        probe_##N = {                                                          \
-            void apply(inout bit<32> register_data, out bit<32> result){       \
-                result = register_data;                                        \
-            }                                                                  \
-    };                                                                         \
+    #define CREATE_HASH_TABLE(N)                                                        \
+    Register<bit<KEY_SIZE>, bit<HASH_SIZE>>(TABLE_SIZE)  hash_table_##N;                \
+                                                                                        \
+    RegisterAction<bit<KEY_SIZE>, bit<HASH_SIZE>, bit<KEY_SIZE>>(hash_table_##N)        \
+        build_##N = {                                                                   \
+            void apply(inout bit<KEY_SIZE> register_data, out bit<KEY_SIZE> found) {    \
+                found = 0;                                                              \
+                if(register_data == 0){                                                 \
+                    register_data = join_control.build_key;                             \
+                    /* any data so it doesnt trigger build on next table */             \
+                    found = 1;                                                          \
+                }                                                                       \
+            }                                                                           \
+    };                                                                                  \
+                                                                                        \
+    RegisterAction<bit<KEY_SIZE>, bit<HASH_SIZE>, bit<KEY_SIZE>>(hash_table_##N)        \
+        probe_##N = {                                                                   \
+            void apply(inout bit<KEY_SIZE> register_data, out bit<KEY_SIZE> result) {   \
+                result = register_data;                                                 \
+            }                                                                           \
+    };                                                                                  \
 
     CREATE_HASH_TABLE(1)
     CREATE_HASH_TABLE(2)
@@ -113,22 +127,27 @@ control Join(
     apply {
         if(join_control.isValid() && (drop_ctl != 1)) {
             @atomic {
-                hasher.apply(join_control, join_control.hash_key);
+                if (join_control.stage == 1) {
+                    meta.hash_key = hasher1.get(join_control.build_key);
+                }
+                else {
+                    meta.hash_key = hasher2.get(join_control.probe_key);
+                }
 
-                #define CREATE_JOIN_LOGIC(N)                                              \
-                /* BUILD */                                                               \
-                if (join_control.stage == 1) {                                            \
-                    /* if build, and not inserted yet */                                  \
-                    if(join_control.found == 0) {                                         \
-                        join_control.found = build_##N.execute(join_control.hash_key);    \
-                    }                                                                     \
-                }                                                                         \
-                /* PROBE */                                                               \
-                else if (join_control.stage == 2) {                                       \
-                    /* if not hit in previous table */                                    \
-                    if (join_control.found != join_control.probe_key)                     \
-                        join_control.found = probe_##N.execute(join_control.hash_key);    \
-                }                                                                         \
+                #define CREATE_JOIN_LOGIC(N)                              \
+                /* BUILD */                                               \
+                if (join_control.stage == 1) {                            \
+                    /* if build, and not inserted yet */                  \
+                    if(meta.found == 0) {                                 \
+                        meta.found = build_##N.execute(meta.hash_key);    \
+                    }                                                     \
+                }                                                         \
+                /* PROBE */                                               \
+                else {                                                    \
+                    /* if not hit in previous table */                    \
+                    if (meta.found != join_control.probe_key)             \
+                        meta.found = probe_##N.execute(meta.hash_key);    \
+                }                                                         \
 
                 CREATE_JOIN_LOGIC(1)
                 CREATE_JOIN_LOGIC(2)
@@ -151,20 +170,20 @@ control Join(
                     tb_drop.apply();
                 }
                 /* If probed index doesnt contain same data: drop */
-                else
-                if (join_control.found != join_control.probe_key 
-                    && join_control.stage == 2) {
-                    tb_drop.apply();
+                else if (join_control.stage == 2) {
+                    if (meta.found != join_control.probe_key) {
+                        tb_drop.apply();
+                    }
                 }
 
-                join_control.found = 0;
+                meta.found = 0;
 
                 if (join_control.stage != 0)
                     join_control.stage = join_control.stage - 1;
-            } // @atomic hint
-        } // Packet validation
-    } // Apply
-} // Join control
+            }
+        }
+    }
+}
 
 /* ===================================================== Ingress ===================================================== */
 
@@ -187,7 +206,7 @@ control SwitchIngress(
         ig_dprsr_md.drop_ctl = drop; // drop packet.
     }
 
-    Join(TABLE_SIZE) join1;
+    Join() join1;
 
     table forward {
         key = {
@@ -204,12 +223,10 @@ control SwitchIngress(
     }
 
     apply {
-        forward.apply();
-        join1.apply(hdr.join_control, ig_dprsr_md.drop_ctl);
-
         // Set timestamps header
         hdr.ethernet.ether_type = ETHERTYPE_BENCHMARK;
         hdr.timestamps.setValid();
+        hdr.timestamps = {0, 0, 0, 0, 0, 0};
         
         /* Ingress IEEE 1588 timestamp (in nsec) taken at the ingress MAC. */
         hdr.timestamps.t0 = ig_intr_md.ingress_mac_tstamp;
@@ -217,10 +234,10 @@ control SwitchIngress(
         /* Global timestamp (ns) taken upon arrival at ingress. */
         hdr.timestamps.t1 = ig_prsr_md.global_tstamp;
 
-        hdr.timestamps.t2 = 0;
-        hdr.timestamps.t3 = 0;
-        hdr.timestamps.t4 = 0;
-        hdr.timestamps.t5 = 0;
+        forward.apply();
+
+        meta = {0, 0};
+        join1.apply(hdr.join_control, meta, ig_dprsr_md.drop_ctl);
     }
 }
 
@@ -236,11 +253,9 @@ control SwitchEgress(
     inout egress_intrinsic_metadata_for_deparser_t      eg_dprsr_md,
     inout egress_intrinsic_metadata_for_output_port_t   eg_oport_md)
 {
-    Join(TABLE_SIZE) join2;
+    Join() join2;
     
     apply {
-        join2.apply(hdr.join_control, eg_dprsr_md.drop_ctl);
-
         // Time snapshot taken when the packet is enqueued (in nsec).
         hdr.timestamps.t2 = eg_intr_md.enq_tstamp;
 
@@ -249,6 +264,9 @@ control SwitchEgress(
 
         /* Global timestamp (ns) taken upon arrival at egress. */
         hdr.timestamps.t4 = eg_prsr_md.global_tstamp;
+
+        meta = {0, 0};
+        join2.apply(hdr.join_control, meta, eg_dprsr_md.drop_ctl);
     }
 }
 

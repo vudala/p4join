@@ -124,8 +124,8 @@ control Join(
                     }                                                                     \
                 }                                                                         \
                 /* PROBE */                                                               \
-                else if (join_control.stage > 1) {                                        \
-                    /* if not probed in previous table */                                 \
+                else if (join_control.stage == 2) {                                       \
+                    /* if not hit in previous table */                                    \
                     if (join_control.found != join_control.probe_key)                     \
                         join_control.found = probe_##N.execute(join_control.hash_key);    \
                 }                                                                         \
@@ -150,31 +150,17 @@ control Join(
                 if(join_control.stage == 1){
                     tb_drop.apply();
                 }
-                /* 
-                If probed index doesnt contain same data: drop
-
-                The stage == 3 check exists to prevent the last table that probes
-                the registers, during the ingress stage, from getting dropped
-                */
+                /* If probed index doesnt contain same data: drop */
                 else
-                if (join_control.found != join_control.probe_key
-                    && join_control.stage != 3){
+                if (join_control.found != join_control.probe_key 
+                    && join_control.stage == 2) {
                     tb_drop.apply();
                 }
 
                 join_control.found = 0;
 
-                /* If packet has reached this point, it means it has probed
-                successfully */
-                
-                /*
-                Decrease stage by 1 if stage != 0
-                If not, it means this is a DONE type packet, wont build or probe
-                Just forward it
-                */
                 if (join_control.stage != 0)
                     join_control.stage = join_control.stage - 1;
-
             } // @atomic hint
         } // Packet validation
     } // Apply

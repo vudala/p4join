@@ -91,8 +91,6 @@ def send_chunk(cfg: Config, lines: list, index: int, chunk_size: int):
       build_key = to_bytes(payload.fields.get(cfg.build_key)),
       probe1_key = to_bytes(payload.fields.get(cfg.probe_keys[0])),
       probe2_key = to_bytes(payload.fields.get(cfg.probe_keys[1])),
-      hash_key = 0x00,
-      found = 0x00,
     )
 
     pkt = ether_frame / join_control / payload
@@ -121,8 +119,6 @@ CET
       stage = 0x00,
       build_key = 0x00,
       probe_keys = [],
-      hash_key = 0x00,
-      found = 0x00,
     )
   
   sendp(ether_frame / join_ctl, iface = 'veth9', verbose=False)

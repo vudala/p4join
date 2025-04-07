@@ -51,6 +51,11 @@ parser SwitchIngressParser(packet_in pkt,
 
     state start {
         tofino_parser.apply(pkt, ig_intr_md);
+        transition meta_init;
+    }
+
+    state meta_init {
+        meta = {0, 0, 0};
         transition parse_ethernet;
     }
 
@@ -58,7 +63,7 @@ parser SwitchIngressParser(packet_in pkt,
         pkt.extract(hdr.ethernet);
         transition select(hdr.ethernet.ether_type) {
             ETHERTYPE_JOIN_CONTROL: parse_join_control;
-            // no default = DROP
+            default: accept;
         }
     }
 
@@ -101,6 +106,11 @@ parser SwitchEgressParser(packet_in pkt,
 
     state start {
         tofino_parser.apply(pkt, eg_intr_md);
+        transition meta_init;
+    }
+
+    state meta_init {
+        meta = {0, 0, 0};
         transition parse_ethernet;
     }
 
@@ -108,7 +118,7 @@ parser SwitchEgressParser(packet_in pkt,
         pkt.extract(hdr.ethernet);
         transition select(hdr.ethernet.ether_type) {
             ETHERTYPE_BENCHMARK: parse_benchmark;
-            // no default = DROP
+            default: accept;
         }
     }
 

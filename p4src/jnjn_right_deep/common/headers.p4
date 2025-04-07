@@ -24,14 +24,6 @@ header ethernet_h {
     bit<16> ether_type;
 }
 
-/*****************************************/
-/*
-
-ssb description: https://www.cs.umb.edu/~poneil/StarSchemaB.PDF
-
-                                         */
-/*****************************************/
-
 typedef bit<8> char;
 typedef bit<16> uint16;
 typedef bit<32> uint32;
@@ -41,18 +33,12 @@ typedef bit<64> uint64;
 in the hash tables */
 #define KEY_SIZE 32
 
-
-
 header join_control_h {
     bit<8> table_id;            // which table it refers to
     bit<8> stage;               // stage (0,1,2,3) (done, build 1, build 2, probe)
     bit<KEY_SIZE> build_key;    // key to be used on build
     bit<KEY_SIZE> probe1_key;   // key to used on probe1
     bit<KEY_SIZE> probe2_key;   // key to used on probe2
-
-    /* Control */
-    bit<16> hash_key;           // ffw store hash crc 16
-    bit<KEY_SIZE> found;        // ffw pkt found value
 }
 
 header timestamps_h {
@@ -70,6 +56,10 @@ struct header_t {
     join_control_h join_control;
 }
 
-struct metadata_t {}
+struct metadata_t {
+    bit<16> hash_key;           // store hash crc 16
+    bit<KEY_SIZE> found;        // pkt found value
+    bit<8> pipeline;            // 0 ingress, 1 egress
+}
 
 #endif /* _HEADERS_ */

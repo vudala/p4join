@@ -22,8 +22,6 @@ class JoinControlLeftDeep(Packet):
         BitField('stage', 0x00, 8),
         BitField('build_key', 0x00, 32),
         BitField('probe_key', 0x00, 32),
-        BitField('hash_key', 0xFFFF, 16),
-        BitField('found', 0x00, 32),
     ]
 
 
@@ -32,14 +30,9 @@ class JoinControlRightDeep(Packet):
     fields_desc = [
         BitField('table_t', 0x00, 8),
         BitField('stage', 0x00, 8),
-        # BitField('build_key', 0x00, 32),
-        # BitField('probe1_key', 0x00, 32),
-        # BitField('probe2_key', 0x00, 32),
         StrFixedLenField('build_key', None, KEY_SIZE),
         StrFixedLenField('probe1_key', None, KEY_SIZE),
         StrFixedLenField('probe2_key', None, KEY_SIZE),
-        BitField('hash_key', 0xFFFF, 16),
-        BitField('found', 0x00, 32),
     ]
 
 

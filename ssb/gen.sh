@@ -15,7 +15,7 @@ echo Generating ssb dataset
 ./dbgen -s $SF 1> /dev/null 2> /dev/null
 
 mv lineorder.tbl ../../datasets/ssb/lineorder.csv
-mv customer.tbl ../../datasets/ssb/customers.csv
+mv customer.tbl ../../datasets/ssb/customer.csv
 mv part.tbl ../../datasets/ssb/part.csv
 mv supplier.tbl ../../datasets/ssb/supplier.csv
 mv date.tbl ../../datasets/ssb/date.csv

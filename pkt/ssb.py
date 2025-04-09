@@ -4,7 +4,7 @@ from scapy.layers.l2 import Ether
 
 # SF * 6_000_000
 class LineOrder(Packet):
-    name = 'Lineorder'
+    name = 'LineOrder'
     fields_desc = [
         LongField('lo_orderkey', 0),
         IntField('lo_linenumber', 0),

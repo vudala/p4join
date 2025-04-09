@@ -140,7 +140,7 @@ building block for larger queries.
 The follwing code performs a join between customer.c_custkey and
 lineorder.lo_custkey. Using the jnjn_left_deep code.
 It happens in the following way:
-- customers is sent first in build phase, the workload is split between 4
+- customer is sent first in build phase, the workload is split between 4
 threads, that will forward packets to the same destination but through different
 interfaces.
 - then the lineorder table is sent on probe phase, again with 4 threads
@@ -151,11 +151,11 @@ Use it along with `client_active.py` on another terminal to sniff the results.
 
 ```bash
 # Performs build on Ingress stage
-sudo python3 send.py --stage 1 -c dataset_samples/customers.sample.csv \
+sudo python3 send.py --stage 1 -c datasets/samples/ssb/customer.csv \
     -bk c_custkey -pk null --threads 4
 
 # Probe during Ingress and Egress stage
-sudo python3 send.py --stage 3 -l dataset_samples/lineorder.sample.csv \
+sudo python3 send.py --stage 3 -l datasets/samples/ssb/lineorder.csv \
     -bk c_custkey -pk lo_custkey --threads 4
 
 # End join
@@ -168,7 +168,7 @@ Use it along with `client_active.py` on another terminal to sniff the results.
 
 ```bash
 # Performs build on Ingress stage
-sudo python3 send.py --stage 1 -c datasets/customers.csv \
+sudo python3 send.py --stage 1 -c datasets/customer.csv \
     -bk c_custkey -pk null --threads 4
 
 # Probe during Ingress and build during Egress stage
@@ -190,7 +190,7 @@ Use it along with `client_passive.py` on another terminal to sniff the results.
 
 ```bash
 # Send build packets
-sudo python3 send.py --stage 1 -c datasets/customers.csv \
+sudo python3 send.py --stage 1 -c datasets/customer.csv \
     -bk c_custkey -pk null --threads 4
 
 # Build done
@@ -214,15 +214,15 @@ sudo python3 send.py --stage 0 -l null -bk null -pk null
 
 ```bash
 # Performs build on Ingress stage
-sudo python3 send.py --stage 1 -c dataset_samples/customers.sample.csv \
+sudo python3 send.py --stage 1 -c datasets/samples/ssb/customer.csv \
     -bk c_custkey -pk null --threads 4
 
 # Probe during Ingress and build during Egress stage
-sudo python3 send.py --stage 2 -l dataset_samples/lineorder.small.sample.csv \
+sudo python3 send.py --stage 2 -l datasets/samples/ssb/lineorder.csv \
     -bk lo_suppkey -pk lo_custkey --threads 4
 
 # Probe during Ingress and Egress stage
-sudo python3 send.py --stage 3 -s dataset_samples/supplier.sample.csv \
+sudo python3 send.py --stage 3 -s datasets/samples/ssb/supplier.csv \
     -bk null -pk s_suppkey --threads 4
 
 # End join
@@ -230,22 +230,11 @@ sudo python3 send.py --stage 0 -l null -bk null -pk null
 ```
 
 
-sudo python3 send_rd.py --stage 1 -c dataset_samples/customers.sample.csv \
+sudo python3 send_rd.py --stage 1 -c datasets/samples/ssb/customer.csv \
     -bk c_custkey -pk null null
 
-sudo python3 send_rd.py --stage 2 -s dataset_samples/supplier.sample.csv \
+sudo python3 send_rd.py --stage 2 -s datasets/samples/ssb/supplier.csv \
     -bk s_suppkey -pk null null
 
-sudo python3 send_rd.py --stage 3 -l dataset_samples/lineorder.small.sample.csv \
+sudo python3 send_rd.py --stage 3 -l datasets/samples/ssb/lineorder.csv \
     -bk null -pk lo_custkey lo_suppkey
-
-
-sudo python3 send.py --stage 1 -c dataset_samples/customers.sample.csv \
-    -bk c_custkey -pk null 
-
-sudo python3 send.py --stage 2 -l dataset_samples/lineorder.small.sample.csv \
-    -bk lo_suppkey -pk lo_custkey
-
-sudo python3 send.py --stage 3 -s dataset_samples/supplier.sample.csv \
-    -bk null -pk s_suppkey
-

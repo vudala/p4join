@@ -5,7 +5,7 @@ from scapy.packet import Packet
 class Part(Packet):
     fields_desc = [
         IntField("p_partkey", 0),
-        StrField("p_name", None, 55),
+        StrField("p_name", None),
         StrFixedLenField("p_mfgr", None, 25),
         StrFixedLenField("p_brand", None, 10),
         StrField("p_type", None),

@@ -245,13 +245,13 @@ if __name__ == "__main__":
   data_t = 0
   file = None
   if args.c:
-    data_t = TableType.CUSTOMER
+    data_t = TableType.SSB_CUSTOMER
     file = args.c
   elif args.l:
-    data_t = TableType.LINEORDER
+    data_t = TableType.SSB_LINEORDER
     file = args.l
   elif args.s:
-    data_t = TableType.SUPPLIER
+    data_t = TableType.SSB_SUPPLIER
     file = args.s
   # elif args.d:
   #   data_t = TableType.DATE

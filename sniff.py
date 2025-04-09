@@ -1,6 +1,6 @@
 from scapy.all import *
 from scapy.layers.l2 import Ether
-from pkt.types import *
+from pkt.binds import *
 
 interface = 'veth24'
 

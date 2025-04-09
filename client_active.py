@@ -6,20 +6,20 @@ from scapy.all import *
 from scapy.layers.l2 import Ether
 
 # Local
-from pkt.types import *
+from pkt.binds import *
 
 interface = 'veth24'
 
 def stop_condition(packet):
-  if JoinControl in packet:
-    ctl = packet[JoinControl]
+  if JoinControlLeftDeep in packet:
+    ctl = packet[JoinControlLeftDeep]
     return ctl.stage == 0
 
 last_time = None
 def proc(packet):
   global last_time
-  if JoinControl in packet:
-    ctl = packet[JoinControl]
+  if JoinControlLeftDeep in packet:
+    ctl = packet[JoinControlLeftDeep]
     if ctl.stage != 0:
       last_time = datetime.now()
 

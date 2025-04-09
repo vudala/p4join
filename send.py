@@ -9,7 +9,7 @@ from scapy.all import *
 from scapy.layers.l2 import Ether
 
 # Local
-from pkt.types import *
+from pkt.binds import *
 from pkt.builder import build_pkt
 
 # Iface available to be used

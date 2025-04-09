@@ -6,7 +6,7 @@ from scapy.all import *
 from scapy.layers.l2 import Ether
 
 # Local
-from pkt.types import *
+from pkt.binds import *
 
 interface = 'veth24'
 
@@ -17,9 +17,9 @@ first_time = None
 last_time = None
 
 def stop_condition(packet):
-  if JoinControl in packet:
+  if JoinControlLeftDeep in packet:
     # Register the datetime to calculate processing time
-    joinctl = packet[JoinControl]
+    joinctl = packet[JoinControlLeftDeep]
     return joinctl.stage == 0
 
 
@@ -28,8 +28,8 @@ def build(packet):
   global last_time
   global hash_table 
 
-  if JoinControl in packet:
-    joinctl = packet[JoinControl]
+  if JoinControlLeftDeep in packet:
+    joinctl = packet[JoinControlLeftDeep]
 
     key = joinctl.build_key
 
@@ -48,8 +48,8 @@ def probe(packet):
   global hash_table
   global result
 
-  if JoinControl in packet:
-    joinctl = packet[JoinControl]
+  if JoinControlLeftDeep in packet:
+    joinctl = packet[JoinControlLeftDeep]
     key = joinctl.probe_key
 
     if joinctl.stage > 1 and key in hash_table:
@@ -82,7 +82,7 @@ print("Building hash table from intermediary join")
 first_time = datetime.now()
 hash_table.clear()
 for p in result:
-  joinctl = p[JoinControl]
+  joinctl = p[JoinControlLeftDeep]
   key = joinctl.build_key
   hash_table[key] = True
 result.clear()

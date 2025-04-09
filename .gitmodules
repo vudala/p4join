@@ -2,10 +2,6 @@
 	path = ssb-dbgen
 	url = https://github.com/eyalroz/ssb-dbgen
 	branch = main
-	ignore = all
-
-[submodule "tpch-dbgen"]
-	path = tpch/tpch-dbgen
+[submodule "tpch/tcph-dbgen"]
+	path = tpch/tcph-dbgen
 	url = https://github.com/eyalroz/tpch-dbgen
-	branch = main
-	ignore = all

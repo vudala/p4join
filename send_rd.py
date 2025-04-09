@@ -205,10 +205,10 @@ def get_args():
   # Tables flags
   t_group = parser.add_mutually_exclusive_group(required=True)
 
-  t_group.add_argument("-l", nargs=1, type=str, help="Use table type lineorder")
-  t_group.add_argument("-c", nargs=1, type=str, help="Use table type customer")
-  t_group.add_argument("-s", nargs=1, type=str, help="Use table type supplier")
-  # t_group.add_argument("-d", nargs=1, type=str, help="Use table type date")
+  t_group.add_argument("-l", type=str, help="Use table type lineorder")
+  t_group.add_argument("-c", type=str, help="Use table type customer")
+  t_group.add_argument("-s", type=str, help="Use table type supplier")
+  # t_group.add_argument("-d", type=str, help="Use table type date")
   # t_group.add_argument("-p", action="store_true", help="Use table type part")
 
   parser.add_argument("--stage", type=int, required=True,
@@ -246,16 +246,16 @@ if __name__ == "__main__":
   file = None
   if args.c:
     data_t = TableType.CUSTOMER
-    file = args.c[0]
+    file = args.c
   elif args.l:
     data_t = TableType.LINEORDER
-    file = args.l[0]
+    file = args.l
   elif args.s:
     data_t = TableType.SUPPLIER
-    file = args.s[0]
+    file = args.s
   # elif args.d:
   #   data_t = TableType.DATE
-  #   file = args.d[0]
+  #   file = args.d
   # elif args.p:
   #   data_t = TableType.PART
 

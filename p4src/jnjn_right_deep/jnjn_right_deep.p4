@@ -9,7 +9,6 @@
 
 #include "common/headers.p4"
 #include "common/parser.p4"
-#include "common/hashing_keys.p4"
 
 #define TABLE_SIZE 65536
 #define HASH_SIZE 16
@@ -56,7 +55,7 @@ control Join(
                                                                                         \
     RegisterAction<bit<KEY_SIZE>, bit<HASH_SIZE>, bit<KEY_SIZE>>(hash_table_##N)        \
         build_##N = {                                                                   \
-            void apply(inout bit<KEY_SIZE> register_data, out bit<KEY_SIZE> found){     \
+            void apply(inout bit<KEY_SIZE> register_data, out bit<KEY_SIZE> found) {    \
                 found = 0;                                                              \
                 if(register_data == 0){                                                 \
                     register_data = join_control.build_key;                             \

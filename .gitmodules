@@ -1,6 +1,8 @@
 [submodule "ssb/ssb-dbgen"]
 	path = ssb/ssb-dbgen
 	url = https://github.com/eyalroz/ssb-dbgen
+	ignore = all
 [submodule "tpch/tpch-dbgen"]
 	path = tpch/tpch-dbgen
 	url = https://github.com/eyalroz/tpch-dbgen
+	ignore = all

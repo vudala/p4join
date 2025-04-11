@@ -40,8 +40,9 @@ class Config():
 def to_bytes(data: any):
   ret = None
   side = None
+
   if type(data) == int:
-    ret = data.to_bytes(length=4, byteorder='big')
+    ret = data.to_bytes(length=KEY_SIZE, byteorder='big')
     side = 'left'
   elif type(data) == str:
     ret = data.encode('ascii')
@@ -64,8 +65,8 @@ def build_left_deep(cfg: Config, payload: any):
   return JoinControlLeftDeep(
     table_t = cfg.data_type.value,
     stage = cfg.stage,
-    build_key = to_bytes(payload.fields.get(cfg.build_key)),
-    probe_key = to_bytes(payload.fields.get(cfg.probe_keys[0])),
+    build_key = to_bytes(payload.fields.get(cfg.build_key, None)),
+    probe_key = to_bytes(payload.fields.get(cfg.probe_keys[0], None)),
   )
 
 
@@ -73,9 +74,9 @@ def build_right_deep(cfg: Config, payload: any):
   return JoinControlRightDeep(
     table_t = cfg.data_type.value,
     stage = cfg.stage,
-    build_key = to_bytes(payload.fields.get(cfg.build_key)),
-    probe1_key = to_bytes(payload.fields.get(cfg.probe_keys[0])),
-    probe2_key = to_bytes(payload.fields.get(cfg.probe_keys[1])),
+    build_key = to_bytes(payload.fields.get(cfg.build_key, None)),
+    probe1_key = to_bytes(payload.fields.get(cfg.probe_keys[0], None)),
+    probe2_key = to_bytes(payload.fields.get(cfg.probe_keys[1], None)),
   )
 
 

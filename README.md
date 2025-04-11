@@ -230,11 +230,4 @@ sudo python3 send.py --stage 0 -l null -bk null -pk null
 ```
 
 
-sudo python3 send_rd.py --stage 1 -c datasets/samples/ssb/customer.csv \
-    -bk c_custkey -pk null null
-
-sudo python3 send_rd.py --stage 2 -s datasets/samples/ssb/supplier.csv \
-    -bk s_suppkey -pk null null
-
-sudo python3 send_rd.py --stage 3 -l datasets/samples/ssb/lineorder.csv \
-    -bk null -pk lo_custkey lo_suppkey
+sudo python3 send_rd.py -b ssb -t customer -s 1 -bk c_name -pks c_name c_name datasets/ssb/customers.csv

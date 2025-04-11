@@ -118,7 +118,8 @@ CET
       table_t = 0x00,
       stage = 0x00,
       build_key = 0x00,
-      probe_keys = [],
+      probe1_key = 0x00,
+      probe2_key = 0x00,
     )
   
   sendp(ether_frame / join_ctl, iface = 'veth9', verbose=False)
@@ -199,26 +200,37 @@ def run(cfg: Config):
 
 def get_args():
   parser = argparse.ArgumentParser(
-    description="Send SSB dataset as packets via veths"
+    description="Send dataset as packets via veths"
   )
 
-  # Tables flags
-  t_group = parser.add_mutually_exclusive_group(required=True)
+  alg = parser.add_mutually_exclusive_group(required=True)
+  alg.add_argument("-rd", "--right-deep",
+                      action="store_true",
+                      help="Use right deep algorithm")
+  alg.add_argument("-ld", "--left-deep",
+                      action="store_true",
+                      help="Use left deep algorithm")
 
-  t_group.add_argument("-l", type=str, help="Use table type lineorder")
-  t_group.add_argument("-c", type=str, help="Use table type customer")
-  t_group.add_argument("-s", type=str, help="Use table type supplier")
-  # t_group.add_argument("-d", type=str, help="Use table type date")
-  # t_group.add_argument("-p", action="store_true", help="Use table type part")
+  bmark = parser.add_mutually_exclusive_group(required=True)
+  bmark.add_argument("-ssb",
+                      action="store_true",
+                      help="Use SSB benchmark")
+  bmark.add_argument("-tpch",
+                      action="store_true",
+                      help="Use TPC-H benchmark")
 
-  parser.add_argument("--stage", type=int, required=True,
-                         help="Which stage to send")
-
-  # Number of threads to use
-  parser.add_argument(
-    "-t", "--threads", type=int, default=1,
-    help="Number of threads to use (default: 1)",
-  )
+  parser.add_argument("-t", "--table",
+                      type=str,
+                      required=True,
+                      help="Which table to use, check README to see options")
+  
+  parser.add_argument("file",
+                      type=str,
+                      help="Which dataset file to use")
+  
+  parser.add_argument("-s","--stage",
+                      type=int, required=True,
+                      help="Which stage to send")
 
   # Key field
   parser.add_argument(
@@ -234,7 +246,33 @@ def get_args():
     help="Destiny MAC (default: '00:00:00:00:00:03')"
   )
 
+  # Number of threads to use
+  parser.add_argument(
+    "--threads", type=int, default=1,
+    help="Number of threads to use (default: 1)",
+  )
+
   return parser.parse_args()
+
+algorithms = ["left_deep", "right_deep"]
+
+benchmarks = {
+  "ssb" : {
+    "lineorder" : TableType.SSB_LINEORDER,
+    "supplier" :  TableType.SSB_SUPPLIER,
+    "customer" :  TableType.SSB_CUSTOMER,
+  },
+  "tpch" : {
+    "part" :      TableType.TPCH_PART,
+    "supplier" :  TableType.TPCH_SUPPLIER,
+    "partsupp" :  TableType.TPCH_PARTSUPP,
+    "customer" :  TableType.TPCH_CUSTOMER,
+    "lineitem" :  TableType.TPCH_LINEITEM,
+    "order" :     TableType.TPCH_ORDER,
+    "nation" :    TableType.TPCH_NATION,
+    "region" :    TableType.TPCH_REGION
+  }
+}
 
 
 if __name__ == "__main__":
@@ -244,24 +282,17 @@ if __name__ == "__main__":
 
   data_t = 0
   file = None
-  if args.c:
-    data_t = TableType.SSB_CUSTOMER
-    file = args.c
-  elif args.l:
-    data_t = TableType.SSB_LINEORDER
-    file = args.l
-  elif args.s:
-    data_t = TableType.SSB_SUPPLIER
-    file = args.s
-  # elif args.d:
-  #   data_t = TableType.DATE
-  #   file = args.d
-  # elif args.p:
-  #   data_t = TableType.PART
 
-  cfg.data_type = data_t
+  alg = "left_deep" if args.left_deep else "right_deep"
+  bmark = "ssb" if args.ssb else "tpch"
+
+  if not args.table in benchmarks[bmark]:
+    print(f"Select valid table from {bmark} benchmark")
+    exit(1)
+
+  cfg.data_type = benchmarks[bmark][args.table]
   cfg.stage = args.stage
-  cfg.file = file
+  cfg.file = args.file
   cfg.build_key = args.build_key
   cfg.probe_keys = args.probe_keys
   cfg.destiny = args.dst

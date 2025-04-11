@@ -10,9 +10,9 @@ from scapy.layers.l2 import Ether
 
 # Local
 from pkt.binds import *
-from pkt.builder import build_pkt
+from pkt.builder import build_bmark
 
-# Iface available to be used
+# ifaces available
 ifaces = [
   "veth8",
   "veth9",
@@ -33,7 +33,8 @@ class Config():
   probe_keys = None
   destiny = None
   threads = None
-  
+  algorithm = None
+
 
 # Convert data into byterray
 def to_bytes(data: any):
@@ -57,6 +58,37 @@ def to_bytes(data: any):
       return b'\x00' * (KEY_SIZE - clen) + ret
 
     return ret
+
+
+def build_left_deep(cfg: Config, payload: any):
+  return JoinControlLeftDeep(
+    table_t = cfg.data_type.value,
+    stage = cfg.stage,
+    build_key = to_bytes(payload.fields.get(cfg.build_key)),
+    probe_key = to_bytes(payload.fields.get(cfg.probe_keys[0])),
+  )
+
+
+def build_right_deep(cfg: Config, payload: any):
+  return JoinControlRightDeep(
+    table_t = cfg.data_type.value,
+    stage = cfg.stage,
+    build_key = to_bytes(payload.fields.get(cfg.build_key)),
+    probe1_key = to_bytes(payload.fields.get(cfg.probe_keys[0])),
+    probe2_key = to_bytes(payload.fields.get(cfg.probe_keys[1])),
+  )
+
+
+alg_args = {
+  "left_deep" : build_left_deep,
+  "right_deep" : build_right_deep
+}
+
+
+def build_alg(cfg: Config, payload: any):
+  build_fn = alg_args[cfg.algorithm]
+
+  return build_fn(cfg, payload)
 
 
 def send_chunk(cfg: Config, lines: list, index: int, chunk_size: int):
@@ -83,15 +115,9 @@ def send_chunk(cfg: Config, lines: list, index: int, chunk_size: int):
   pkts = []
 
   for l in lines[start_i:end_i]:
-    payload = build_pkt(cfg.data_type, l)
+    payload = build_bmark(cfg.data_type, l)
 
-    join_control = JoinControlRightDeep(
-      table_t = cfg.data_type.value,
-      stage = cfg.stage,
-      build_key = to_bytes(payload.fields.get(cfg.build_key)),
-      probe1_key = to_bytes(payload.fields.get(cfg.probe_keys[0])),
-      probe2_key = to_bytes(payload.fields.get(cfg.probe_keys[1])),
-    )
+    join_control = build_alg(cfg, payload)
 
     pkt = ether_frame / join_control / payload
     pkts.append(pkt)
@@ -106,7 +132,7 @@ def send_chunk(cfg: Config, lines: list, index: int, chunk_size: int):
 def send_close(cfg: Config):
   """
   Sends a stage 0 packet to destiny (close)
-CET
+
   Params
   ------
   - cfg: Config
@@ -121,9 +147,9 @@ CET
       probe1_key = 0x00,
       probe2_key = 0x00,
     )
-  
+
   sendp(ether_frame / join_ctl, iface = 'veth9', verbose=False)
-  
+
 
 def split_workload(cfg: Config, lines: list):
   """
@@ -254,6 +280,7 @@ def get_args():
 
   return parser.parse_args()
 
+
 algorithms = ["left_deep", "right_deep"]
 
 benchmarks = {
@@ -297,5 +324,6 @@ if __name__ == "__main__":
   cfg.probe_keys = args.probe_keys
   cfg.destiny = args.dst
   cfg.threads = args.threads
+  cfg.algorithm = alg
 
   run(cfg)

@@ -1,6 +1,7 @@
 from pkt.binds import TableType
 import pkt.ssb as ssb
 import pkt.tpch as tpch
+from pkt.binds import *
 
 
 ##### SSB  #####
@@ -155,7 +156,7 @@ def tpch_region(line: str):
   )
 
 
-build_args = {
+bmark_args = {
   TableType.SSB_LINEORDER: ssb_lineorder,
   TableType.SSB_CUSTOMER: ssb_customer,
   TableType.SSB_SUPPLIER: ssb_supplier,
@@ -171,8 +172,8 @@ build_args = {
 }
 
 
-def build_pkt(data_t: TableType, line: str):
-  build_fn = build_args[data_t]
+def build_bmark(data_t: TableType, line: str):
+  build_fn = bmark_args[data_t]
 
   payload = build_fn(line)
 
